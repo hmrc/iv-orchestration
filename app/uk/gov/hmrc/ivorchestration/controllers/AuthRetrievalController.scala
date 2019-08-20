@@ -17,17 +17,21 @@
 package uk.gov.hmrc.ivorchestration.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import play.api.libs.json._
+import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.ivorchestration.config.AppConfig
+import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.Future
 
 @Singleton()
-class MicroserviceHelloWorldController @Inject()(appConfig: AppConfig, cc: ControllerComponents)
-    extends BackendController(cc) {
+class AuthRetrievalController @Inject()(appConfig: AppConfig, cc: ControllerComponents)
+  extends BackendController(cc) {
 
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("Hello world"))
+  def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
+    implicit request =>
+      //TODO: Auth needs to be added here.
+      Future.successful(Ok(Json.toJson(request.body)))
   }
 }
