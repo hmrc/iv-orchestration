@@ -25,8 +25,9 @@ trait AppConfiguration extends MongoConfiguration {
   lazy val graphiteHost: String     = pureconfig.loadConfigOrThrow[String]("microservice.metrics.graphite.host")
 }
 
-case class AuthService(host: String, port: Int)
-
 trait MongoConfiguration {
   lazy val mongoUri: String = pureconfig.loadConfigOrThrow[String]("mongo.uri")
 }
+
+
+case class AuthService(host: String, port: Int)
