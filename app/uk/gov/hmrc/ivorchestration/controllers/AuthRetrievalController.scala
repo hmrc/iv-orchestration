@@ -19,15 +19,15 @@ package uk.gov.hmrc.ivorchestration.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
-import uk.gov.hmrc.ivorchestration.config.AppConfig
+import uk.gov.hmrc.ivorchestration.config.AppConfiguration
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.Future
 
 @Singleton()
-class AuthRetrievalController @Inject()(appConfig: AppConfig, cc: ControllerComponents)
-  extends BackendController(cc) {
+class AuthRetrievalController @Inject()(cc: ControllerComponents)
+  extends BackendController(cc) with AppConfiguration {
 
   def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
     implicit request =>

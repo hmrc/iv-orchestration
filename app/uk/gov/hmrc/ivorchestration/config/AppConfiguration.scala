@@ -16,15 +16,17 @@
 
 package uk.gov.hmrc.ivorchestration.config
 
-import javax.inject.{Inject, Singleton}
-import play.api.Configuration
-import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
+trait AppConfiguration extends MongoConfiguration {
 
-@Singleton
-class AppConfig @Inject()(config: Configuration, servicesConfig: ServicesConfig) {
+  import pureconfig.generic.auto._ //Do not remove this
 
-  val authBaseUrl: String = servicesConfig.baseUrl("auth")
+  lazy val authBaseUrl: AuthService = pureconfig.loadConfigOrThrow[AuthService]("microservice.services.auth")
+  lazy val auditingEnabled: Boolean = pureconfig.loadConfigOrThrow[Boolean]("auditing.enabled")
+  lazy val graphiteHost: String     = pureconfig.loadConfigOrThrow[String]("microservice.metrics.graphite.host")
+}
 
-  val auditingEnabled: Boolean = config.get[Boolean]("auditing.enabled")
-  val graphiteHost: String     = config.get[String]("microservice.metrics.graphite.host")
+case class AuthService(host: String, port: Int)
+
+trait MongoConfiguration {
+  lazy val mongoUri: String = pureconfig.loadConfigOrThrow[String]("mongo.uri")
 }

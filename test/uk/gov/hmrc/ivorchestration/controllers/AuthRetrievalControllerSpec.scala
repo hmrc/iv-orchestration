@@ -26,7 +26,7 @@ import play.api.libs.json.Json
 import play.api.test.{FakeRequest, Helpers}
 import play.api.{Configuration, Environment, Mode}
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
-import uk.gov.hmrc.ivorchestration.config.AppConfig
+import uk.gov.hmrc.ivorchestration.config.AppConfiguration
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
 import play.api.test.Helpers._
@@ -52,7 +52,7 @@ class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOn
   private val controller = new AuthRetrievalController(appConfig, stubControllerComponents())
 
   private def injector: Injector = app.injector
-  implicit val appConfig: AppConfig = injector.instanceOf[AppConfig]
+  implicit val appConfig: AppConfiguration = injector.instanceOf[AppConfiguration]
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   implicit lazy val materializer: Materializer = app.materializer
 

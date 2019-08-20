@@ -19,13 +19,13 @@ package uk.gov.hmrc.ivorchestration.controllers
 import javax.inject.{Inject, Singleton}
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import uk.gov.hmrc.ivorchestration.config.AppConfig
+import uk.gov.hmrc.ivorchestration.config.AppConfiguration
 
 import scala.concurrent.Future
 
 @Singleton()
-class MicroserviceHelloWorldController @Inject()(appConfig: AppConfig, cc: ControllerComponents)
-    extends BackendController(cc) {
+class MicroserviceHelloWorldController @Inject()(cc: ControllerComponents)
+    extends BackendController(cc) with AppConfiguration {
 
   def hello(): Action[AnyContent] = Action.async { implicit request =>
     Future.successful(Ok("Hello world"))
