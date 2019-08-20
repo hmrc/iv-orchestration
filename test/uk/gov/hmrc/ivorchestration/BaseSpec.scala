@@ -14,20 +14,8 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration.controllers
+package uk.gov.hmrc.ivorchestration
 
-import javax.inject.{Inject, Singleton}
-import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
-import uk.gov.hmrc.ivorchestration.config.AppConfiguration
+import org.scalatest.{MustMatchers, WordSpec}
 
-import scala.concurrent.Future
-
-@Singleton()
-class MicroserviceHelloWorldController @Inject()(cc: ControllerComponents)
-    extends BackendController(cc) with AppConfiguration {
-
-  def hello(): Action[AnyContent] = Action.async { implicit request =>
-    Future.successful(Ok("Hello world"))
-  }
-}
+trait BaseSpec extends WordSpec with MustMatchers

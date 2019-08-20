@@ -23,13 +23,11 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.i18n.MessagesApi
 import play.api.inject.Injector
 import play.api.libs.json.Json
-import play.api.test.{FakeRequest, Helpers}
-import play.api.{Configuration, Environment, Mode}
-import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
-import uk.gov.hmrc.ivorchestration.config.AppConfiguration
-import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
-import uk.gov.hmrc.play.bootstrap.config.{RunMode, ServicesConfig}
+import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
+import uk.gov.hmrc.ivorchestration.BaseSpec
+import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 
 
 class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOneAppPerSuite {
@@ -49,14 +47,12 @@ class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOn
   }
 
 
-  private val controller = new AuthRetrievalController(appConfig, stubControllerComponents())
+  private val controller = new AuthRetrievalController(stubControllerComponents())
 
   private def injector: Injector = app.injector
-  implicit val appConfig: AppConfiguration = injector.instanceOf[AppConfiguration]
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   implicit lazy val materializer: Materializer = app.materializer
 
   val itmpAddress = ItmpAddress(Some("5 Street"),Some("Worthing"),Some("West Sussex"),None,None,Some("BN13 3AS"),Some("England"),Some("44"))
   val authRetrieval = AuthRetrieval(Some("123455"),200,Some(DateTime.now),Some("123"),Some(itmpAddress),Some("BN13 3AS"),Some("Matt"),Some("Groom"))
-
 }
