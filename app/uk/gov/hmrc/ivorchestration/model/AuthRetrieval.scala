@@ -18,7 +18,7 @@ package uk.gov.hmrc.ivorchestration.model
 
 import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json._
-import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
+import uk.gov.hmrc.auth.core.retrieve.{GGCredId, ItmpAddress}
 
 object AuthRetrieval {
 
@@ -28,19 +28,23 @@ object AuthRetrieval {
 
   implicit val itmpAddressFormat: Format[ItmpAddress] = Json.format[ItmpAddress]
 
+  implicit val ggCredIdFormat: Format[GGCredId] = Json.format[GGCredId]
+
   implicit val authRetrievalFormat: Format[AuthRetrieval] = Json.format[AuthRetrieval]
 }
 
 case class AuthRetrieval(
-                          nino: Option[String] = None,
+                          credId: GGCredId,
+                          nino: Option[String],
                           confidenceLevel: Int,
-                          loginTimes: Option[DateTime] = None,
-                          credentialStrength: Option[String] = None,
-                          itmpAddress: Option[ItmpAddress] = None,
-                          postCode: Option[String] = None,
-                          firstName: Option[String] = None,
-                          lastName: Option[String] = None,
-                          dateOfbirth: Option[LocalDate] = None
+                          loginTimes: Option[DateTime],
+                          credentialStrength: Option[String],
+                          itmpAddress: Option[ItmpAddress],
+                          postCode: Option[String],
+                          firstName: Option[String],
+                          lastName: Option[String],
+                          dateOfbirth: Option[LocalDate],
+                          ttl: Int
                         )
 
 

@@ -29,14 +29,14 @@ import scala.concurrent.Future
 //TODO change id types & DbConnection etc...
 
 trait SessionDataAlgebra[F[_]] {
-  def findSessionData(id: String)(implicit hc: HeaderCarrier): F[List[SessionData]]
+  def findSessionData(name: String)(implicit hc: HeaderCarrier): F[List[SessionData]]
   def createSessionData(sessionData: SessionData)(implicit hc: HeaderCarrier): F[Unit]
 }
 
 
 class SessionDataService[F[_]](reactiveMongoComponent: ReactiveMongoConnector, sessionDataAlgebra: SessionDataAlgebra[F]) {
-  def findSessionData(id: String)(implicit hc: HeaderCarrier): F[List[SessionData]] =
-    sessionDataAlgebra.findSessionData("")
+  def findSessionData(name: String)(implicit hc: HeaderCarrier): F[List[SessionData]] =
+    sessionDataAlgebra.findSessionData(name)
 
   def createSessionData(sessionData: SessionData)(implicit hc: HeaderCarrier): F[Unit] =
     sessionDataAlgebra.createSessionData(sessionData)
@@ -50,10 +50,9 @@ class SessionDataDBService(reactiveMongoComponent: ReactiveMongoConnector)
   import scala.concurrent.ExecutionContext.Implicits.global
 
   override def createSessionData(sessionData: SessionData)(implicit hc: HeaderCarrier): Future[Unit] =
-    insert(sessionData).map { _ => () }
+    insert(sessionData).map(_ => ())
       .recoverWith {
         case e: DatabaseException => Future.failed(e)
-        case e: Exception => Future.failed(e)
       }
 
   override def findSessionData(name: String)(implicit hc: HeaderCarrier): Future[List[SessionData]] =
