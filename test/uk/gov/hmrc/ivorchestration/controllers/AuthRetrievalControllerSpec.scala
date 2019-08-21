@@ -17,7 +17,6 @@
 package uk.gov.hmrc.ivorchestration.controllers
 
 import akka.stream.Materializer
-import org.joda.time.{DateTime, LocalDate}
 import org.scalamock.scalatest.MockFactory
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.i18n.MessagesApi
@@ -25,9 +24,9 @@ import play.api.inject.Injector
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.auth.core.retrieve.{GGCredId, ItmpAddress}
 import uk.gov.hmrc.ivorchestration.BaseSpec
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration._
 
 class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOneAppPerSuite {
 
@@ -53,8 +52,4 @@ class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOn
   private def injector: Injector = app.injector
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   implicit lazy val materializer: Materializer = app.materializer
-
-  val itmpAddress = ItmpAddress(Some("5 Street"),Some("Worthing"),Some("West Sussex"),None,None,Some("BN13 3AS"),Some("England"),Some("44"))
-  val authRetrieval = AuthRetrieval(None, GGCredId("777"), Some("123455"),200,
-    Some(DateTime.now),Some("123"),Some(itmpAddress),Some("BN13 3AS"),Some("Matt"),Some("Groom"), Some(LocalDate.now), 60)
 }

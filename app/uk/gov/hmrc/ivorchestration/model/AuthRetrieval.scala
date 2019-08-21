@@ -31,6 +31,8 @@ object AuthRetrieval {
   implicit val ggCredIdFormat: Format[GGCredId] = Json.format[GGCredId]
 
   implicit val authRetrievalFormat: Format[AuthRetrieval] = Json.format[AuthRetrieval]
+
+  implicit val format = Json.format[AuthRetrieval]
 }
 
 case class AuthRetrieval(

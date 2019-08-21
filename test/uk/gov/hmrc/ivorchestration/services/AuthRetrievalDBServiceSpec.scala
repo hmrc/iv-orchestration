@@ -18,14 +18,16 @@ package uk.gov.hmrc.ivorchestration.services
 
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.BaseSpec
+import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.mongo.{MongoConnector, MongoSpecSupport}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import uk.gov.hmrc.ivorchestration._
 
-class SessionDataDBServiceSpec extends BaseSpec with MongoSpecSupport {
+class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport {
 
   implicit val hc = HeaderCarrier()
 
@@ -33,14 +35,14 @@ class SessionDataDBServiceSpec extends BaseSpec with MongoSpecSupport {
     override def mongoConnector: MongoConnector = mongoConnectorForTest
   }
 
-  "can Add and retrieve SessionData entity" in {
-    val service = new SessionDataDBService(reactiveMongoComponent)
+  "can Add and retrieve AuthRetrieval entity" in {
+    val service = new AuthRetrievalDBService(reactiveMongoComponent)
 
-    val eventualData: Future[List[SessionData]] = for {
-      _    <- service.createSessionData(SessionData("123"))
-      data <- service.findSessionData("123")
+    val eventualData: Future[List[AuthRetrieval]] = for {
+      _    <- service.addAuthRetrieval(authRetrieval)
+      data <- service.findAuthRetrievals("123")
     } yield data
 
-    Await.result(eventualData, 20 seconds).head mustBe SessionData("123")
+    Await.result(eventualData, 20 seconds).head.firstName mustBe authRetrieval.firstName
   }
 }
