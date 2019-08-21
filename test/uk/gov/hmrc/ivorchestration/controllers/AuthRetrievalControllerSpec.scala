@@ -29,7 +29,6 @@ import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.ivorchestration.BaseSpec
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 
-
 class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOneAppPerSuite {
 
   "validate returns a 200 OK when a valid AuthRetrieval has been parse" in {
