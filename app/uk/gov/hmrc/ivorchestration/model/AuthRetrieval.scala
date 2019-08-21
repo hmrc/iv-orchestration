@@ -34,6 +34,7 @@ object AuthRetrieval {
 }
 
 case class AuthRetrieval(
+                          journeyId: Option[String],
                           credId: GGCredId,
                           nino: Option[String],
                           confidenceLevel: Int,

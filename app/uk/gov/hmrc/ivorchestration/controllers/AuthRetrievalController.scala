@@ -16,6 +16,8 @@
 
 package uk.gov.hmrc.ivorchestration.controllers
 
+import java.util.UUID
+
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
@@ -32,6 +34,7 @@ class AuthRetrievalController @Inject()(cc: ControllerComponents)
   def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
     implicit request =>
       //TODO: Auth needs to be added here.
-      Future.successful(Ok(Json.toJson(request.body)))
+
+      Future.successful(Ok(Json.toJson(request.body.copy(journeyId = Some(UUID.randomUUID().toString)))))
   }
 }

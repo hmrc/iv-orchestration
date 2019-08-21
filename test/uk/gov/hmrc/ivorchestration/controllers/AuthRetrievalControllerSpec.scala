@@ -32,13 +32,15 @@ import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOneAppPerSuite {
 
   "validate returns a 200 OK when a valid AuthRetrieval has been parse" in {
-    val result = controller.ivSessionData()(FakeRequest("POST", "/verification").withBody(authRetrieval))
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(authRetrieval))
+    val actual = contentAsJson(result).as[AuthRetrieval]
+
     status(result) mustBe OK
-    contentAsJson(result) mustBe Json.toJson(authRetrieval)
+    actual mustBe authRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
   "validate returns a 400 BAD_REQUEST when a invalid AuthRetrieval has not been parse" in {
-    val result = controller.ivSessionData()(FakeRequest("POST", "/verification")
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
       .withBody(Json.parse("""{ "k": "v"}"""))
         .withHeaders("Content-Type" -> "application/json")
     )
@@ -53,6 +55,6 @@ class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOn
   implicit lazy val materializer: Materializer = app.materializer
 
   val itmpAddress = ItmpAddress(Some("5 Street"),Some("Worthing"),Some("West Sussex"),None,None,Some("BN13 3AS"),Some("England"),Some("44"))
-  val authRetrieval = AuthRetrieval(GGCredId("777"), Some("123455"),200,
-    Some(DateTime.now),Some("123"),Some(itmpAddress),Some("BN13 3AS"),Some("Matt"),Some("Groom"), Some(LocalDate.now), ttl = 60)
+  val authRetrieval = AuthRetrieval(None, GGCredId("777"), Some("123455"),200,
+    Some(DateTime.now),Some("123"),Some(itmpAddress),Some("BN13 3AS"),Some("Matt"),Some("Groom"), Some(LocalDate.now), 60)
 }
