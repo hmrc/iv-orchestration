@@ -47,7 +47,7 @@ case class AuthRetrieval(
                           firstName: Option[String],
                           lastName: Option[String],
                           dateOfbirth: Option[LocalDate],
-                          ttl: Int
+                          ttl: Int //TODO ask if this is defined in conf
                         )
 
 

@@ -22,6 +22,7 @@ import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.ivorchestration.config.AppConfiguration
+import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
@@ -29,12 +30,12 @@ import scala.concurrent.Future
 
 @Singleton()
 class AuthRetrievalController @Inject()(cc: ControllerComponents)
-  extends BackendController(cc) with AppConfiguration {
+  extends BackendController(cc) with AppConfiguration with AuthRetrievalRequestHandler {
 
   def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
     implicit request =>
       //TODO: Auth needs to be added here.
 
-      Future.successful(Ok(Json.toJson(request.body.copy(journeyId = Some(UUID.randomUUID().toString)))))
+      Future.successful(Ok(Json.toJson(handleAuthRetrieval(request.body))))
   }
 }

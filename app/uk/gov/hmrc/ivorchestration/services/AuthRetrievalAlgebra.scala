@@ -32,16 +32,16 @@ import scala.concurrent.Future
 
 trait AuthRetrievalAlgebra[F[_]] {
   def findAuthRetrievals(name: String)(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
-  def addAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[Unit]
+  def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[Unit]
 }
 
 
 class AuthRetrievalService[F[_]](reactiveMongoComponent: ReactiveMongoConnector, sessionDataAlgebra: AuthRetrievalAlgebra[F]) {
-  def findSessionData(name: String)(implicit hc: HeaderCarrier): F[List[AuthRetrieval]] =
+  def findAllAuthRetrievals(name: String)(implicit hc: HeaderCarrier): F[List[AuthRetrieval]] =
     sessionDataAlgebra.findAuthRetrievals(name)
 
-  def addAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[Unit] =
-    sessionDataAlgebra.addAuthRetrieval(authRetrieval)
+  def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[Unit] =
+    sessionDataAlgebra.insertAuthRetrieval(authRetrieval)
 }
 
 
@@ -49,7 +49,7 @@ class AuthRetrievalDBService(reactiveMongoComponent: ReactiveMongoConnector)
   extends ReactiveRepository[AuthRetrieval, BSONObjectID]("authRetrieval", reactiveMongoComponent.mongoConnector.db, AuthRetrieval.format)
     with AuthRetrievalAlgebra[Future] {
 
-  override def addAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[Unit] =
+  override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[Unit] =
     insert(authRetrieval).map(_ => ())
       .recoverWith {
         case e: DatabaseException => Future.failed(e)

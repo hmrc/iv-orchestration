@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.ivorchestration.handlers
 
-import org.joda.time.{DateTime, LocalDate}
-import uk.gov.hmrc.auth.core.retrieve.{GGCredId, ItmpAddress}
-import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.BaseSpec
+import uk.gov.hmrc.ivorchestration._
 
-package object ivorchestration {
+class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
-  val sampleItmpAddress = ItmpAddress(Some("5 Street"),Some("Worthing"),Some("West Sussex"),None,None,Some("BN13 3AS"),Some("England"),Some("44"))
-  val sampleAuthRetrieval = AuthRetrieval(None, GGCredId("777"), Some("123455"),200,
-    Some(DateTime.now),Some("123"),Some(sampleItmpAddress),Some("BN13 3AS"),Some("Matt"),Some("Groom"), Some(LocalDate.now), 60)
+  "Given AuthRetrieval request" in new AuthRetrievalRequestHandler {
+    handleAuthRetrieval(sampleAuthRetrieval).journeyId.isDefined mustBe true
+  }
+
 
 }

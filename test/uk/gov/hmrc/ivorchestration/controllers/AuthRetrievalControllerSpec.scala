@@ -31,11 +31,11 @@ import uk.gov.hmrc.ivorchestration._
 class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOneAppPerSuite {
 
   "validate returns a 200 OK when a valid AuthRetrieval has been parse" in {
-    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(authRetrieval))
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
     val actual = contentAsJson(result).as[AuthRetrieval]
 
     status(result) mustBe OK
-    actual mustBe authRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+    actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
   "validate returns a 400 BAD_REQUEST when a invalid AuthRetrieval has not been parse" in {
