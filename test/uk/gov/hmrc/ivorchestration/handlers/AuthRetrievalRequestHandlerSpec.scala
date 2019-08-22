@@ -30,7 +30,7 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
   implicit val hc = HeaderCarrier()
 
   val algebra = new AuthRetrievalAlgebra[Id] {
-    override def findAuthRetrievals(name: String)(implicit hc: HeaderCarrier): Id[List[AuthRetrieval]] = ???
+    override def findAuthRetrievals()(implicit hc: HeaderCarrier): Id[List[AuthRetrieval]] = ???
     override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Id[AuthRetrieval] = {
       called.set(true)
       sampleAuthRetrieval
@@ -46,8 +46,6 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new AuthRetrievalRequestHandler[Id](algebra) {
       val authRetrieval = handleAuthRetrieval(sampleAuthRetrieval)
-//      persist(authRetrieval)
-
       called.get mustBe true
     }
 

@@ -30,7 +30,7 @@ import scala.concurrent.Future
 //TODO change id types...
 
 trait AuthRetrievalAlgebra[F[_]] {
-  def findAuthRetrievals(name: String)(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
+  def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
   def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval]
 }
 
@@ -44,6 +44,6 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
         case e: DatabaseException => Future.failed(e)
       }
 
-  override def findAuthRetrievals(name: String)(implicit hc: HeaderCarrier): Future[List[AuthRetrieval]] = findAll()
+  override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrieval]] = findAll()
 }
 

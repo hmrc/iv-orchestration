@@ -17,7 +17,7 @@
 package uk.gov.hmrc.ivorchestration.controllers
 
 import akka.stream.Materializer
-import org.scalamock.scalatest.MockFactory
+import cats.instances.future._
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.i18n.MessagesApi
 import play.api.inject.Injector
@@ -30,17 +30,17 @@ import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import uk.gov.hmrc.mongo.MongoSpecSupport
-import scala.concurrent.Future
-import scala.concurrent.ExecutionContext.Implicits.global
-import cats.instances.future._
 
-class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOneAppPerSuite with MongoSpecSupport {
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+
+class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoSpecSupport {
 
   "validate returns a 200 OK when a valid AuthRetrieval has been parse" in {
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
     val actual = contentAsJson(result).as[AuthRetrieval]
 
-    status(result) mustBe OK
+    status(result) mustBe CREATED
     actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 

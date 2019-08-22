@@ -35,7 +35,7 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport {
 
     val eventualData: Future[List[AuthRetrieval]] = for {
       _    <- service.insertAuthRetrieval(sampleAuthRetrieval)
-      data <- service.findAuthRetrievals("123")
+      data <- service.findAuthRetrievals()
     } yield data
 
     Await.result(eventualData, 20 seconds).head.firstName mustBe sampleAuthRetrieval.firstName

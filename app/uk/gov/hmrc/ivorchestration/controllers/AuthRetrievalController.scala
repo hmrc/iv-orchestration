@@ -37,6 +37,6 @@ class AuthRetrievalController @Inject()(cc: ControllerComponents) extends Backen
   def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
     implicit request =>
       //TODO: Auth needs to be added here.
-      requestsHandler.handleAuthRetrieval(request.body).map(x => Ok(Json.toJson(x)))
+      requestsHandler.handleAuthRetrieval(request.body).map(authRetrieval => Created(Json.toJson(authRetrieval)))
   }
 }
