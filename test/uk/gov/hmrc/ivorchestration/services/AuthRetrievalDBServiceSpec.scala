@@ -17,26 +17,21 @@
 package uk.gov.hmrc.ivorchestration.services
 
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.BaseSpec
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
-import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
-import uk.gov.hmrc.mongo.{MongoConnector, MongoSpecSupport}
+import uk.gov.hmrc.ivorchestration.persistence.DBConnector
+import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
+import uk.gov.hmrc.mongo.MongoSpecSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
-import uk.gov.hmrc.ivorchestration._
 
 class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport {
 
   implicit val hc = HeaderCarrier()
 
-  val reactiveMongoComponent: ReactiveMongoConnector = new ReactiveMongoConnector {
-    override def mongoConnector: MongoConnector = mongoConnectorForTest
-  }
-
   "can Add and retrieve AuthRetrieval entity" in {
-    val service = new AuthRetrievalDBService(reactiveMongoComponent)
+    val service = new AuthRetrievalDBService(DBConnector(mongoConnectorForTest))
 
     val eventualData: Future[List[AuthRetrieval]] = for {
       _    <- service.insertAuthRetrieval(sampleAuthRetrieval)

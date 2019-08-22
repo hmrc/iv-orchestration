@@ -18,12 +18,18 @@ package uk.gov.hmrc.ivorchestration.handlers
 
 import java.util.UUID
 
+import cats.Monad
+import cats.syntax.functor._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
 
-trait AuthRetrievalRequestHandler {
+class AuthRetrievalRequestHandler[F[_]: Monad](authRetrievalAlgebra: AuthRetrievalAlgebra[F]) {
 
+  def handleAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval] =
+    persist(authRetrieval.copy(journeyId = Some(UUID.randomUUID().toString)))
 
-  def handleAuthRetrieval(authRetrieval: AuthRetrieval): AuthRetrieval =
-    authRetrieval.copy(journeyId = Some(UUID.randomUUID().toString))
-
+  def persist(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval] =
+    authRetrievalAlgebra.insertAuthRetrieval(authRetrieval).map(_ => authRetrieval)
 }
+

@@ -16,41 +16,30 @@
 
 package uk.gov.hmrc.ivorchestration.services
 
-import play.api.libs.json.JsString
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
-import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
+import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
-import scala.concurrent.ExecutionContext.Implicits.global
 
+import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-//TODO change id types & DbConnection etc...
+//TODO change id types...
 
 trait AuthRetrievalAlgebra[F[_]] {
   def findAuthRetrievals(name: String)(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
-  def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[Unit]
+  def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval]
 }
 
-
-class AuthRetrievalService[F[_]](reactiveMongoComponent: ReactiveMongoConnector, sessionDataAlgebra: AuthRetrievalAlgebra[F]) {
-  def findAllAuthRetrievals(name: String)(implicit hc: HeaderCarrier): F[List[AuthRetrieval]] =
-    sessionDataAlgebra.findAuthRetrievals(name)
-
-  def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[Unit] =
-    sessionDataAlgebra.insertAuthRetrieval(authRetrieval)
-}
-
-
-class AuthRetrievalDBService(reactiveMongoComponent: ReactiveMongoConnector)
-  extends ReactiveRepository[AuthRetrieval, BSONObjectID]("authRetrieval", reactiveMongoComponent.mongoConnector.db, AuthRetrieval.format)
+class AuthRetrievalDBService(mongoComponent: DBConnector)
+  extends ReactiveRepository[AuthRetrieval, BSONObjectID]("authRetrieval", mongoComponent.mongoConnector.db, AuthRetrieval.format)
     with AuthRetrievalAlgebra[Future] {
 
-  override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[Unit] =
-    insert(authRetrieval).map(_ => ())
+  override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[AuthRetrieval] =
+    insert(authRetrieval).map(_ => authRetrieval)
       .recoverWith {
         case e: DatabaseException => Future.failed(e)
       }

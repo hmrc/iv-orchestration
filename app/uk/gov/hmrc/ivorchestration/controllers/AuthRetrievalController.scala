@@ -16,26 +16,27 @@
 
 package uk.gov.hmrc.ivorchestration.controllers
 
-import java.util.UUID
-
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
-import uk.gov.hmrc.ivorchestration.config.AppConfiguration
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
+import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import scala.concurrent.ExecutionContext.Implicits.global
+import cats.instances.future._
 
 import scala.concurrent.Future
 
 @Singleton()
-class AuthRetrievalController @Inject()(cc: ControllerComponents)
-  extends BackendController(cc) with AppConfiguration with AuthRetrievalRequestHandler {
+class AuthRetrievalController @Inject()(cc: ControllerComponents) extends BackendController(cc) {
+
+  val requestsHandler = new AuthRetrievalRequestHandler[Future](new AuthRetrievalDBService(ReactiveMongoConnector()))
 
   def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
     implicit request =>
       //TODO: Auth needs to be added here.
-
-      Future.successful(Ok(Json.toJson(handleAuthRetrieval(request.body))))
+      requestsHandler.handleAuthRetrieval(request.body).map(x => Ok(Json.toJson(x)))
   }
 }

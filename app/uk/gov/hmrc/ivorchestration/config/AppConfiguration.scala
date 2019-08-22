@@ -26,7 +26,7 @@ trait AppConfiguration extends MongoConfiguration {
 }
 
 trait MongoConfiguration {
-  lazy val mongoUri: String = pureconfig.loadConfigOrThrow[String]("mongo.uri")
+  lazy val mongoUri: String = pureconfig.loadConfigOrThrow[String]("mongodb.uri")
 }
 
 

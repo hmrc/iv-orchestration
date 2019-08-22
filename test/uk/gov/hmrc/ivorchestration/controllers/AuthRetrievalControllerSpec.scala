@@ -24,11 +24,17 @@ import play.api.inject.Injector
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.ivorchestration.BaseSpec
+import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
-import uk.gov.hmrc.ivorchestration._
+import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
+import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
+import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
+import uk.gov.hmrc.mongo.MongoSpecSupport
+import scala.concurrent.Future
+import scala.concurrent.ExecutionContext.Implicits.global
+import cats.instances.future._
 
-class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOneAppPerSuite {
+class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOneAppPerSuite with MongoSpecSupport {
 
   "validate returns a 200 OK when a valid AuthRetrieval has been parse" in {
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
@@ -46,8 +52,12 @@ class AuthRetrievalControllerSpec extends BaseSpec with MockFactory with GuiceOn
     status(result) mustBe BAD_REQUEST
   }
 
+  private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnectorForTest))
+  private val handler = new AuthRetrievalRequestHandler[Future](service)
 
-  private val controller = new AuthRetrievalController(stubControllerComponents())
+  private val controller = new AuthRetrievalController(stubControllerComponents()) {
+    override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
+  }
 
   private def injector: Injector = app.injector
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]

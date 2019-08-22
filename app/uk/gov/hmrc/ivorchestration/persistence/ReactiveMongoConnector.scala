@@ -24,7 +24,9 @@ trait ReactiveMongoConnector {
   def mongoConnector: MongoConnector
 }
 
-object ReactiveMongoConnector extends ReactiveMongoConnector with MongoConfiguration {
+object ReactiveMongoConnector extends MongoConfiguration {
+
+  def apply(mongoConnector: MongoConnector = mongoConnector): DBConnector = new DBConnector(mongoConnector)
 
   Logger.info("ReactiveMongoPlugin starting...")
 
@@ -41,3 +43,5 @@ object ReactiveMongoConnector extends ReactiveMongoConnector with MongoConfigura
     mongoConnector.close()
   })
 }
+
+case class DBConnector(mongoConnector: MongoConnector)

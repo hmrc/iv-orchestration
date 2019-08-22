@@ -16,14 +16,40 @@
 
 package uk.gov.hmrc.ivorchestration.handlers
 
-import uk.gov.hmrc.ivorchestration.BaseSpec
-import uk.gov.hmrc.ivorchestration._
+import java.util.concurrent.atomic.AtomicBoolean
+
+import cats.Id
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
+import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
 
 class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
-  "Given AuthRetrieval request" in new AuthRetrievalRequestHandler {
-    handleAuthRetrieval(sampleAuthRetrieval).journeyId.isDefined mustBe true
+  val called = new AtomicBoolean(false)
+  implicit val hc = HeaderCarrier()
+
+  val algebra = new AuthRetrievalAlgebra[Id] {
+    override def findAuthRetrievals(name: String)(implicit hc: HeaderCarrier): Id[List[AuthRetrieval]] = ???
+    override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Id[AuthRetrieval] = {
+      called.set(true)
+      sampleAuthRetrieval
+    }
   }
 
+  "Given AuthRetrieval" should {
+    "JourneyId added to the AuthRetrieval" in {
+      val handler = new AuthRetrievalRequestHandler[Id](algebra)
 
+      handler.handleAuthRetrieval(sampleAuthRetrieval).journeyId.isDefined mustBe true
+    }
+
+    "Given AuthRetrieval the requested IV session data record is created and persisted" in new AuthRetrievalRequestHandler[Id](algebra) {
+      val authRetrieval = handleAuthRetrieval(sampleAuthRetrieval)
+//      persist(authRetrieval)
+
+      called.get mustBe true
+    }
+
+  }
 }
