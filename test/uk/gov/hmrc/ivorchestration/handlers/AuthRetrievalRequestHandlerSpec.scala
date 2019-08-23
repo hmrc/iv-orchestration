@@ -19,6 +19,7 @@ package uk.gov.hmrc.ivorchestration.handlers
 import java.util.concurrent.atomic.AtomicBoolean
 
 import cats.Id
+import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
@@ -28,7 +29,7 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
   implicit val hc = HeaderCarrier()
 
   "Given AuthRetrieval" should {
-    "JourneyId added to the AuthRetrieval" in new AuthRetrievalRequestHandler[Id](algebra) {
+    "JourneyId is generated for AuthRetrieval" in new AuthRetrievalRequestHandler[Id](algebra) {
       handleAuthRetrieval(sampleAuthRetrieval).journeyId.isDefined mustBe true
     }
 
@@ -42,10 +43,13 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
   val algebra = new AuthRetrievalAlgebra[Id] {
     override def findAuthRetrievals()(implicit hc: HeaderCarrier): Id[List[AuthRetrieval]] = ???
+    override def findJourneyIdAndCredId(journeyId: String, credId: GGCredId)(implicit hc: HeaderCarrier): Id[Option[AuthRetrieval]] = ???
     override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Id[AuthRetrieval] = {
-      authRetrieval mustBe sampleAuthRetrieval.copy(journeyId = authRetrieval.journeyId)
+      val persisted = sampleAuthRetrieval.copy(journeyId = authRetrieval.journeyId)
+      authRetrieval mustBe persisted
       called.set(true)
-      sampleAuthRetrieval
+      persisted
     }
+
   }
 }

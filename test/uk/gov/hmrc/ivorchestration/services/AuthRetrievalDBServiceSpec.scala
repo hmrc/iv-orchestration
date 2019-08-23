@@ -17,6 +17,7 @@
 package uk.gov.hmrc.ivorchestration.services
 
 import org.scalatest.BeforeAndAfterEach
+import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
@@ -39,6 +40,21 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport with Bef
     } yield data
 
     val actual = await[List[AuthRetrieval]](eventualData).head
+
+    actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+  }
+
+  "can Add and retrieve AuthRetrieval entity by journeyId & GGCredId" ignore {
+    val uniqueKey = AuthRetrieval.dbKey("6789", "999")
+
+    val eventualData: Future[Option[AuthRetrieval]] = for {
+      persisted    <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("xxx")))
+      _            <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(credId = GGCredId("999")))
+      _            <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("6789")))
+      data         <- service.findJourneyIdAndCredId(persisted.journeyId.getOrElse(""), persisted.credId)
+    } yield data
+
+    val actual = await[Option[AuthRetrieval]](eventualData).get
 
     actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }

@@ -16,25 +16,32 @@
 
 package uk.gov.hmrc.ivorchestration.services
 
+import play.api.libs.json.Json.JsValueWrapper
 import reactivemongo.bson.BSONObjectID
 import reactivemongo.core.errors.DatabaseException
+import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
+import AuthRetrieval._
+import reactivemongo.api.indexes.{Index, IndexType}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
 trait AuthRetrievalAlgebra[F[_]] {
-  def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
   def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval]
+  def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
+  def findJourneyIdAndCredId(journeyId: String, credId: GGCredId)(implicit hc: HeaderCarrier): F[Option[AuthRetrieval]]
 }
 
 class AuthRetrievalDBService(mongoComponent: DBConnector)
   extends ReactiveRepository[AuthRetrieval, BSONObjectID]("authRetrieval", mongoComponent.mongoConnector.db, AuthRetrieval.format)
     with AuthRetrievalAlgebra[Future] {
+
+//  override def indexes: Seq[Index] = Seq(Index(Seq("journeyId" -> IndexType.Text)))
 
   override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[AuthRetrieval] =
     insert(authRetrieval).map(_ => authRetrieval)
@@ -43,5 +50,13 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
       }
 
   override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrieval]] = findAll()
+
+  //TODO to be fixed - maybe need index
+  override def findJourneyIdAndCredId(journeyId: String, credId: GGCredId)(implicit hc: HeaderCarrier): Future[Option[AuthRetrieval]] = {
+    val query = dbKey(journeyId, credId.credId)
+    find(query: _*).map(_.headOption)
+  }
 }
+
+
 

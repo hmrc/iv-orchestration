@@ -17,6 +17,7 @@
 package uk.gov.hmrc.ivorchestration.model
 
 import org.joda.time.{DateTime, LocalDate}
+import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.retrieve.{GGCredId, ItmpAddress}
 
@@ -33,6 +34,9 @@ object AuthRetrieval {
   implicit val authRetrievalFormat: Format[AuthRetrieval] = Json.format[AuthRetrieval]
 
   implicit val format = Json.format[AuthRetrieval]
+
+  val dbKey: (String, String) => Seq[(String, JsValueWrapper)] =
+    (journeyId, credId) => Seq("authRetrieval.journeyId" -> journeyId) //, "authRetrieval.credId" -> credId)
 }
 
 case class AuthRetrieval(

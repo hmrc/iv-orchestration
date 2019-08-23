@@ -23,5 +23,5 @@ import scala.concurrent.duration._
 
 trait BaseSpec extends WordSpec with MustMatchers {
 
-  def await[A](future: Future[A]) = Await.result(future, 20 seconds)
+  def await[A](future: Future[A]): A = Await.result(future, 20 seconds)
 }
