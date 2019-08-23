@@ -18,6 +18,7 @@ package uk.gov.hmrc.ivorchestration.controllers
 
 import akka.stream.Materializer
 import cats.instances.future._
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.i18n.MessagesApi
 import play.api.inject.Injector
@@ -32,19 +33,24 @@ import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import uk.gov.hmrc.mongo.MongoSpecSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
 
-class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoSpecSupport {
+class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoSpecSupport with BeforeAndAfterEach {
 
-  "validate returns a 200 OK when a valid AuthRetrieval has been parse" in {
+  "returns a 201 Created when a valid AuthRetrieval request" in {
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
     val actual = contentAsJson(result).as[AuthRetrieval]
+    val persistedAuthRetrieval = await[List[AuthRetrieval]](service.findAll()).head
+
+    val expectedRetrieval = sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
 
     status(result) mustBe CREATED
-    actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+    actual mustBe expectedRetrieval
+    persistedAuthRetrieval mustBe expectedRetrieval
   }
 
-  "validate returns a 400 BAD_REQUEST when a invalid AuthRetrieval has not been parse" in {
+  "returns a 400 BAD_REQUEST for an invalid AuthRetrieval request" in {
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
       .withBody(Json.parse("""{ "k": "v"}"""))
         .withHeaders("Content-Type" -> "application/json")
@@ -62,4 +68,7 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   private def injector: Injector = app.injector
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   implicit lazy val materializer: Materializer = app.materializer
+
+  override def beforeEach(): Unit = await(service.removeAll())
+  override def afterEach(): Unit = await(service.removeAll())
 }

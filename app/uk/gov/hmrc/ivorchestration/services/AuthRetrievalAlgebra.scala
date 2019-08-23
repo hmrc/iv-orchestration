@@ -27,8 +27,6 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-//TODO change id types...
-
 trait AuthRetrievalAlgebra[F[_]] {
   def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
   def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval]

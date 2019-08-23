@@ -18,4 +18,10 @@ package uk.gov.hmrc.ivorchestration
 
 import org.scalatest.{MustMatchers, WordSpec}
 
-trait BaseSpec extends WordSpec with MustMatchers
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration._
+
+trait BaseSpec extends WordSpec with MustMatchers {
+
+  def await[A](future: Future[A]) = Await.result(future, 20 seconds)
+}

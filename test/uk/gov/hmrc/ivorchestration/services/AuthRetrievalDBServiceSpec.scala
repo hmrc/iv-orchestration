@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.services
 
+import org.scalatest.BeforeAndAfterEach
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
@@ -23,21 +24,25 @@ import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import uk.gov.hmrc.mongo.MongoSpecSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.Future
 
-class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport {
+class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport with BeforeAndAfterEach {
 
   implicit val hc = HeaderCarrier()
 
-  "can Add and retrieve AuthRetrieval entity" in {
-    val service = new AuthRetrievalDBService(DBConnector(mongoConnectorForTest))
+  val service = new AuthRetrievalDBService(DBConnector(mongoConnectorForTest))
 
+  "can Add and retrieve AuthRetrieval entity" in {
     val eventualData: Future[List[AuthRetrieval]] = for {
       _    <- service.insertAuthRetrieval(sampleAuthRetrieval)
       data <- service.findAuthRetrievals()
     } yield data
 
-    Await.result(eventualData, 20 seconds).head.firstName mustBe sampleAuthRetrieval.firstName
+    val actual = await[List[AuthRetrieval]](eventualData).head
+
+    actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
+
+  override def beforeEach(): Unit = await(service.removeAll())
+  override def afterEach(): Unit = await(service.removeAll())
 }
