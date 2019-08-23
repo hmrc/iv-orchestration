@@ -25,29 +25,27 @@ import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
 
 class AuthRetrievalRequestHandlerSpec extends BaseSpec {
-
-  val called = new AtomicBoolean(false)
   implicit val hc = HeaderCarrier()
 
-  val algebra = new AuthRetrievalAlgebra[Id] {
-    override def findAuthRetrievals()(implicit hc: HeaderCarrier): Id[List[AuthRetrieval]] = ???
-    override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Id[AuthRetrieval] = {
-      called.set(true)
-      sampleAuthRetrieval
-    }
-  }
-
   "Given AuthRetrieval" should {
-    "JourneyId added to the AuthRetrieval" in {
-      val handler = new AuthRetrievalRequestHandler[Id](algebra)
-
-      handler.handleAuthRetrieval(sampleAuthRetrieval).journeyId.isDefined mustBe true
+    "JourneyId added to the AuthRetrieval" in new AuthRetrievalRequestHandler[Id](algebra) {
+      handleAuthRetrieval(sampleAuthRetrieval).journeyId.isDefined mustBe true
     }
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new AuthRetrievalRequestHandler[Id](algebra) {
       val authRetrieval = handleAuthRetrieval(sampleAuthRetrieval)
       called.get mustBe true
     }
+  }
 
+  val called = new AtomicBoolean(false)
+
+  val algebra = new AuthRetrievalAlgebra[Id] {
+    override def findAuthRetrievals()(implicit hc: HeaderCarrier): Id[List[AuthRetrieval]] = ???
+    override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Id[AuthRetrieval] = {
+      authRetrieval mustBe sampleAuthRetrieval.copy(journeyId = authRetrieval.journeyId)
+      called.set(true)
+      sampleAuthRetrieval
+    }
   }
 }

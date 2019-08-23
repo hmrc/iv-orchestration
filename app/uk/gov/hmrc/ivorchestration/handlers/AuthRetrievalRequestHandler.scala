@@ -29,7 +29,7 @@ class AuthRetrievalRequestHandler[F[_]: Monad](authRetrievalAlgebra: AuthRetriev
   def handleAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval] =
     persist(authRetrieval.copy(journeyId = Some(UUID.randomUUID().toString)))
 
-  def persist(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval] =
+  protected def persist(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval] =
     authRetrievalAlgebra.insertAuthRetrieval(authRetrieval).map(_ => authRetrieval)
 }
 
