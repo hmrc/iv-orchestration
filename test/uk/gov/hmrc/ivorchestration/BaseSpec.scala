@@ -16,20 +16,12 @@
 
 package uk.gov.hmrc.ivorchestration
 
-import com.github.simplyscala.MongoEmbedDatabase
 import org.scalatest.{MustMatchers, WordSpec}
 
-import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 trait BaseSpec extends WordSpec with MustMatchers {
 
   def await[A](future: Future[A]): A = Await.result(future, 20 seconds)
-}
-
-trait MongoEmbeddedServer extends MongoEmbedDatabase {
-  def startMongoServer(port: Int = 27017) = mongoStart(port)
-
-  //TODO I do NOT like 'null' may use different library
-  def stopMongoServer(port: Int = 27017) = mongoStop(null)
 }

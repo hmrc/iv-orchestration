@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.services
 
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.BeforeAndAfterEach
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
@@ -27,7 +27,7 @@ import uk.gov.hmrc.mongo.MongoSpecSupport
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport with BeforeAndAfterEach with BeforeAndAfterAll with MongoEmbeddedServer {
+class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport with BeforeAndAfterEach {
 
   implicit val hc = HeaderCarrier()
 
@@ -59,9 +59,6 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport with Bef
     actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
-  override def beforeAll(): Unit = startMongoServer()
   override def beforeEach(): Unit = await(service.removeAll())
-
   override def afterEach(): Unit = await(service.removeAll())
-  override def afterAll(): Unit = stopMongoServer()
 }

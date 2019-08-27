@@ -37,7 +37,7 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoSpecSupport
-  with BeforeAndAfterEach with BeforeAndAfterAll with MongoEmbeddedServer {
+  with BeforeAndAfterEach {
   implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
@@ -58,18 +58,8 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     status(result) mustBe BAD_REQUEST
   }
 
-  private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnectorForTest)) {
-    override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[AuthRetrieval] =
-      Future.successful(authRetrieval)
-
-    override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrieval]] =
-      Future.successful(List(sampleAuthRetrieval))
-  }
-
-  private val handler = new AuthRetrievalRequestHandler[Future](service) {
-    override protected def persist(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[AuthRetrieval] =
-      Future.successful(authRetrieval)
-  }
+  private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnectorForTest))
+  private val handler = new AuthRetrievalRequestHandler[Future](service)
 
   private val controller = new AuthRetrievalController(stubControllerComponents()) {
     override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
@@ -78,4 +68,7 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   private def injector: Injector = app.injector
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   implicit lazy val materializer: Materializer = app.materializer
+
+  override def beforeEach(): Unit = await(service.removeAll())
+  override def afterEach(): Unit = await(service.removeAll())
 }
