@@ -34,27 +34,26 @@ import scala.concurrent.Future
 trait AuthRetrievalAlgebra[F[_]] {
   def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval]
   def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
-  def findJourneyIdAndCredId(journeyId: String, credId: GGCredId)(implicit hc: HeaderCarrier): F[Option[AuthRetrieval]]
+  def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): F[Option[AuthRetrieval]]
 }
 
 class AuthRetrievalDBService(mongoComponent: DBConnector)
   extends ReactiveRepository[AuthRetrieval, BSONObjectID]("authretrieval", mongoComponent.mongoConnector.db, AuthRetrieval.format)
     with AuthRetrievalAlgebra[Future] {
 
-//  override def indexes: Seq[Index] = Seq(Index(Seq("journeyId" -> IndexType.Text)))
-
   override def indexes: Seq[Index] = {
     Seq(
-//      Index(
-//      Seq("expireAt" -> Ascending),
-//      Option("record-ttl"),
-//      options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(60)))
-//    ),
       Index(
-        Seq("authretrieval.journeyId" -> Ascending),
-//          "authretrieval.credId" -> Ascending),
-            Option("primaryKey"),
-            unique = true
+      Seq("expireAt" -> Ascending),
+      Option("record-ttl"),
+      options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(60)))
+    ),
+      Index(
+        Seq("authretrieval.journeyId" -> Ascending,
+            "authretrieval.credId" -> Ascending),
+            Option("CompositePrimaryKey"),
+            unique = true,
+            sparse = true
       )
     )
   }
@@ -68,8 +67,8 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
   override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrieval]] = findAll()
 
   //TODO to be fixed - maybe need index
-  override def findJourneyIdAndCredId(journeyId: String, credId: GGCredId)(implicit hc: HeaderCarrier): Future[Option[AuthRetrieval]] = {
-    val query = dbKey(journeyId, credId.credId)
+  override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Future[Option[AuthRetrieval]] = {
+    val query = dbKey(journeyId, credId)
     find(query: _*).map(_.headOption)
   }
 }

@@ -22,7 +22,6 @@ import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
-import uk.gov.hmrc.mongo.MongoSpecSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -44,22 +43,16 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with Before
     actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
-  "can Add and retrieve AuthRetrieval entity by journeyId & GGCredId" ignore {
-    val uniqueKey = AuthRetrieval.dbKey("6789", "999")
-
-    var x: List[AuthRetrieval] = Nil
-
+  "can Add and retrieve AuthRetrieval entity by journeyId & GGCredId" in {
     val eventualData: Future[Option[AuthRetrieval]] = for {
-      persisted    <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("12345")))
-//      _            <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(credId = GGCredId("999")))
-      _            <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("6789")))
-      _ = service.findAll().map(r => x = r)
+      persisted    <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123"))
+      _            <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("333"), credId = "9999"))
       data         <- service.findJourneyIdAndCredId(persisted.journeyId.getOrElse(""), persisted.credId)
     } yield data
 
     val actual = await[Option[AuthRetrieval]](eventualData).get
 
-    actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+    actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, credId= actual.credId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
   override def beforeEach(): Unit = await(service.removeAll())

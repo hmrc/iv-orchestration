@@ -36,12 +36,12 @@ object AuthRetrieval {
   implicit val format = Json.format[AuthRetrieval]
 
   val dbKey: (String, String) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq("authretrieval.journeyId" -> JsString(journeyId)) //, "authRetrieval.credId" -> credId)
+    (journeyId, credId) => Seq("journeyId" -> JsString(journeyId), "credId" -> JsString(credId))
 }
 
 case class AuthRetrieval(
                           journeyId: Option[String],
-                          credId: GGCredId,
+                          credId: String,
                           nino: Option[String],
                           confidenceLevel: Int,
                           loginTimes: Option[DateTime],

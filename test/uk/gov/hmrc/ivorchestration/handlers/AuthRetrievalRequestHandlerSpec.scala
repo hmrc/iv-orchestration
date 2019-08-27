@@ -43,7 +43,7 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
   val algebra = new AuthRetrievalAlgebra[Id] {
     override def findAuthRetrievals()(implicit hc: HeaderCarrier): Id[List[AuthRetrieval]] = ???
-    override def findJourneyIdAndCredId(journeyId: String, credId: GGCredId)(implicit hc: HeaderCarrier): Id[Option[AuthRetrieval]] = ???
+    override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Id[Option[AuthRetrieval]] = ???
     override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Id[AuthRetrieval] = {
       val persisted = sampleAuthRetrieval.copy(journeyId = authRetrieval.journeyId)
       authRetrieval mustBe persisted
