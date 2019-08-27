@@ -16,22 +16,22 @@
 
 package uk.gov.hmrc.ivorchestration.services
 
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
-import uk.gov.hmrc.ivorchestration.persistence.DBConnector
+import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import uk.gov.hmrc.mongo.MongoSpecSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport with BeforeAndAfterEach {
+class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport with BeforeAndAfterEach with BeforeAndAfterAll with MongoEmbeddedServer {
 
   implicit val hc = HeaderCarrier()
 
-  val service = new AuthRetrievalDBService(DBConnector(mongoConnectorForTest))
+  val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnectorForTest))
 
   "can Add and retrieve AuthRetrieval entity" in {
     val eventualData: Future[List[AuthRetrieval]] = for {
@@ -59,6 +59,9 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoSpecSupport with Bef
     actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
+  override def beforeAll(): Unit = startMongoServer()
   override def beforeEach(): Unit = await(service.removeAll())
+
   override def afterEach(): Unit = await(service.removeAll())
+  override def afterAll(): Unit = stopMongoServer()
 }

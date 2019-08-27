@@ -18,13 +18,14 @@ package uk.gov.hmrc.ivorchestration.controllers
 
 import akka.stream.Materializer
 import cats.instances.future._
-import org.scalatest.BeforeAndAfterEach
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.i18n.MessagesApi
 import play.api.inject.Injector
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
@@ -33,21 +34,20 @@ import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import uk.gov.hmrc.mongo.MongoSpecSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration._
+import scala.concurrent.Future
 
-class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoSpecSupport with BeforeAndAfterEach {
+class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoSpecSupport
+  with BeforeAndAfterEach with BeforeAndAfterAll with MongoEmbeddedServer {
+  implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
     val actual = contentAsJson(result).as[AuthRetrieval]
-    val persistedAuthRetrieval = await[List[AuthRetrieval]](service.findAll()).head
 
     val expectedRetrieval = sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
 
     status(result) mustBe CREATED
     actual mustBe expectedRetrieval
-    persistedAuthRetrieval mustBe expectedRetrieval
   }
 
   "returns a 400 BAD_REQUEST for an invalid AuthRetrieval request" in {
@@ -58,8 +58,18 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     status(result) mustBe BAD_REQUEST
   }
 
-  private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnectorForTest))
-  private val handler = new AuthRetrievalRequestHandler[Future](service)
+  private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnectorForTest)) {
+    override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[AuthRetrieval] =
+      Future.successful(authRetrieval)
+
+    override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrieval]] =
+      Future.successful(List(sampleAuthRetrieval))
+  }
+
+  private val handler = new AuthRetrievalRequestHandler[Future](service) {
+    override protected def persist(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[AuthRetrieval] =
+      Future.successful(authRetrieval)
+  }
 
   private val controller = new AuthRetrievalController(stubControllerComponents()) {
     override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
@@ -68,7 +78,4 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   private def injector: Injector = app.injector
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   implicit lazy val materializer: Materializer = app.materializer
-
-  override def beforeEach(): Unit = await(service.removeAll())
-  override def afterEach(): Unit = await(service.removeAll())
 }
