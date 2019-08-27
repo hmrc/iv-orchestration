@@ -29,5 +29,4 @@ trait MongoConfiguration {
   lazy val mongoUri: String = pureconfig.loadConfigOrThrow[String]("mongodb.uri")
 }
 
-
 case class AuthService(host: String, port: Int)

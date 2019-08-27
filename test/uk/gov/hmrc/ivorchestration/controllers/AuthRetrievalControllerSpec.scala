@@ -18,7 +18,7 @@ package uk.gov.hmrc.ivorchestration.controllers
 
 import akka.stream.Materializer
 import cats.instances.future._
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.i18n.MessagesApi
 import play.api.inject.Injector
@@ -26,18 +26,17 @@ import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
 import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
-import uk.gov.hmrc.mongo.MongoSpecSupport
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoSpecSupport
-  with BeforeAndAfterEach {
+class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoDBClient with BeforeAndAfterEach {
   implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
@@ -58,7 +57,7 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     status(result) mustBe BAD_REQUEST
   }
 
-  private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnectorForTest))
+  private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnector))
   private val handler = new AuthRetrievalRequestHandler[Future](service)
 
   private val controller = new AuthRetrievalController(stubControllerComponents()) {

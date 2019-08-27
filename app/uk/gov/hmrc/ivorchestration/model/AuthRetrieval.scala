@@ -36,7 +36,7 @@ object AuthRetrieval {
   implicit val format = Json.format[AuthRetrieval]
 
   val dbKey: (String, String) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq("authRetrieval.journeyId" -> journeyId) //, "authRetrieval.credId" -> credId)
+    (journeyId, credId) => Seq("authretrieval.journeyId" -> JsString(journeyId)) //, "authRetrieval.credId" -> credId)
 }
 
 case class AuthRetrieval(
@@ -51,7 +51,7 @@ case class AuthRetrieval(
                           firstName: Option[String],
                           lastName: Option[String],
                           dateOfbirth: Option[LocalDate],
-                          ttl: Int //TODO ask if this is defined in conf
+                          expireAt: Int //TODO ask if this is defined in conf
                         )
 
 
