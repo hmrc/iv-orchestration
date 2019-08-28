@@ -36,5 +36,5 @@ trait MongoDBClient extends MongoConfiguration {
     mongoConnector.helper.db(name, failoverStrategy)
 
 
-  val connector = ReactiveMongoConnector(mongoConnector)
+  val dbConnector = ReactiveMongoConnector(mongoConnector)
 }

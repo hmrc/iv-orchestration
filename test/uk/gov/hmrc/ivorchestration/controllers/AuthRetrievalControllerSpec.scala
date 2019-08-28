@@ -18,6 +18,7 @@ package uk.gov.hmrc.ivorchestration.controllers
 
 import akka.stream.Materializer
 import cats.instances.future._
+import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import play.api.i18n.MessagesApi
@@ -25,8 +26,10 @@ import play.api.inject.Injector
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.authorise.EmptyPredicate
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
+import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
@@ -34,12 +37,23 @@ import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
 
-class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoDBClient with BeforeAndAfterEach {
+class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoDBClient with BeforeAndAfterEach with MockFactory {
   implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
+    val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnector))
+    val handler = new AuthRetrievalRequestHandler[Future](service)
+    val authConnector = mock[AuthConnector]
+
+    val controller = new AuthRetrievalController(authConnector, stubControllerComponents()) {
+      override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
+      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = body
+      }
+    }
+    
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
     val actual = contentAsJson(result).as[AuthRetrieval]
 
@@ -59,8 +73,9 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
   private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnector))
   private val handler = new AuthRetrievalRequestHandler[Future](service)
+  private val authConnector = mock[AuthConnector]
 
-  private val controller = new AuthRetrievalController(stubControllerComponents()) {
+  private val controller = new AuthRetrievalController(authConnector, stubControllerComponents()) {
     override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
   }
 

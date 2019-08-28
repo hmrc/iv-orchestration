@@ -16,11 +16,10 @@
 
 package uk.gov.hmrc.ivorchestration.config
 
-trait AppConfiguration extends MongoConfiguration {
+trait AppConfiguration extends MongoConfiguration with AuthServiceConfiguration {
 
   import pureconfig.generic.auto._  //Do not remove this
 
-  lazy val authBaseUrl: AuthService = pureconfig.loadConfigOrThrow[AuthService]("microservice.services.auth")
   lazy val auditingEnabled: Boolean = pureconfig.loadConfigOrThrow[Boolean]("auditing.enabled")
   lazy val graphiteHost: String     = pureconfig.loadConfigOrThrow[String]("microservice.metrics.graphite.host")
 }
@@ -31,7 +30,13 @@ trait MongoConfiguration {
   lazy val mongoConfig: MongoConfig = pureconfig.loadConfigOrThrow[MongoConfig]("mongodb")
 }
 
+trait AuthServiceConfiguration {
+  import pureconfig.generic.auto._
 
-case class AuthService(host: String, port: Int)
+  lazy val authConf: AuthServiceConf = pureconfig.loadConfigOrThrow[AuthServiceConf]("microservice.services.auth")
+}
+
+
+case class AuthServiceConf(protocol: String, host: String, port: Int)
 
 case class MongoConfig(uri: String, ttl: Int, monitorRefresh: Int, failover: String)

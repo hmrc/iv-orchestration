@@ -20,7 +20,9 @@ import cats.instances.future._
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
+import uk.gov.hmrc.auth.core.AuthorisedFunctions
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
+import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
@@ -30,13 +32,20 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton()
-class AuthRetrievalController @Inject()(cc: ControllerComponents) extends BackendController(cc) with MongoDBClient {
+class AuthRetrievalController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
+  extends BackendController(cc) with MongoDBClient with AuthorisedFunctions {
 
-  val requestsHandler = new AuthRetrievalRequestHandler[Future](new AuthRetrievalDBService(connector))
+  val requestsHandler = new AuthRetrievalRequestHandler[Future](new AuthRetrievalDBService(dbConnector))
 
   def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
     implicit request =>
       //TODO: Auth needs to be added here.
-      requestsHandler.handleAuthRetrieval(request.body).map(authRetrieval => Created(Json.toJson(authRetrieval)))
+
+      authorised() {
+        requestsHandler.handleAuthRetrieval(request.body)
+          .map(authRetrieval => Created(Json.toJson(authRetrieval)))
+      }.recoverWith {
+        case _ => Future.successful(Unauthorized)
+      }
   }
 }
