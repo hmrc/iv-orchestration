@@ -19,7 +19,6 @@ package uk.gov.hmrc.ivorchestration.services
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
@@ -28,7 +27,6 @@ import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.Failure
 
 class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with BeforeAndAfterEach with ScalaFutures {
 

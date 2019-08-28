@@ -24,7 +24,9 @@ import uk.gov.hmrc.mongo.MongoConnector
 
 trait MongoDBClient extends MongoConfiguration {
 
-  protected val mongoDBUri: String     = s"$mongoUri?rm.monitorRefreshMS=1000&rm.failover=default"
+  import mongoConfig._
+
+  protected val mongoDBUri: String     = s"$uri?rm.monitorRefreshMS=$monitorRefresh&rm.failover=$failover"
 
   implicit lazy val mongoConnector: MongoConnector = MongoConnector(mongoDBUri)
   implicit val mongo: () => DefaultDB                     = mongoConnector.db
