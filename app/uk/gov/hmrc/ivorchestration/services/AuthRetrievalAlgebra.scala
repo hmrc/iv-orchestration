@@ -44,9 +44,9 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
   override def indexes: Seq[Index] = {
     Seq(
       Index(
-      Seq("expireAt" -> Ascending),
-      Option("record-ttl"),
-      options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(mongoConfig.ttl)))
+        Seq("loginTimes" -> Ascending),
+        Option("record-ttl"),
+        options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(mongoConfig.ttl)))
     ),
       Index(
         Seq("journeyId" -> Ascending,

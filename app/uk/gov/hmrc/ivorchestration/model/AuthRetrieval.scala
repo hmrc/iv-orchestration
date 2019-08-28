@@ -23,15 +23,13 @@ import uk.gov.hmrc.auth.core.retrieve.{GGCredId, ItmpAddress}
 
 object AuthRetrieval {
 
-  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
-
   implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](JodaReads.jodaLocalDateReads("yyyy-MM-dd"), JodaWrites.jodaLocalDateWrites("yyyy-MM-dd"))
 
   implicit val itmpAddressFormat: Format[ItmpAddress] = Json.format[ItmpAddress]
 
   implicit val ggCredIdFormat: Format[GGCredId] = Json.format[GGCredId]
 
-  implicit val authRetrievalFormat: Format[AuthRetrieval] = Json.format[AuthRetrieval]
+  import uk.gov.hmrc.mongo.json.ReactiveMongoFormats.dateTimeFormats
 
   implicit val format = Json.format[AuthRetrieval]
 
@@ -51,7 +49,7 @@ case class AuthRetrieval(
                           firstName: Option[String],
                           lastName: Option[String],
                           dateOfbirth: Option[LocalDate],
-                          expireAt: Int //TODO ask if this is defined in conf
+                          ttl: Int
                         )
 
 
