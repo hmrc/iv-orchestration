@@ -21,7 +21,7 @@ import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson.{BSONDocument, BSONInteger, BSONObjectID}
 import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.config.{MongoConfiguration, MongoDBClient}
+import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval._
 import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector

@@ -28,18 +28,14 @@ object ReactiveMongoConnector extends MongoConfiguration {
 
   def apply(mongoConnector: MongoConnector = mongoConnector): DBConnector = new DBConnector(mongoConnector)
 
-  Logger.info("ReactiveMongoPlugin starting...")
+  Logger.info("Reactive Mongo starting...")
 
-  lazy val mongoConnector: MongoConnector = MongoConnector(
-    mongoUri//,
-//    mongoConfig.maybeFailoverStrategy,
-//    mongoConfig.dbTimeout
-  )
+  lazy val mongoConnector: MongoConnector = MongoConnector(mongoConfig.uri)
 
-  Logger.debug(s"ReactiveMongoPlugin: MongoConnector configuration being used: $mongoConnector")
+  Logger.debug(s"Reactive Mongo configuration being used: $mongoConnector")
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
-    Logger.info("ReactiveMongoPlugin stops, closing connections...")
+    Logger.info("Reactive Plugin stops, closing connections...")
     mongoConnector.close()
   })
 }
