@@ -26,7 +26,12 @@ trait AppConfiguration extends MongoConfiguration {
 }
 
 trait MongoConfiguration {
-  lazy val mongoUri: String = pureconfig.loadConfigOrThrow[String]("mongodb.uri")
+  import pureconfig.generic.auto._
+
+  lazy val mongoConfig: MongoConfig = pureconfig.loadConfigOrThrow[MongoConfig]("mongodb")
 }
 
+
 case class AuthService(host: String, port: Int)
+
+case class MongoConfig(uri: String, ttl: Int, monitorRefresh: Int, failover: String)
