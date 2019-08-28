@@ -17,6 +17,8 @@
 package uk.gov.hmrc.ivorchestration.services
 
 import org.scalatest.BeforeAndAfterEach
+import org.scalatest.concurrent.ScalaFutures
+import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
@@ -26,7 +28,7 @@ import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
-class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with BeforeAndAfterEach {
+class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with BeforeAndAfterEach with ScalaFutures {
 
   implicit val hc = HeaderCarrier()
 
@@ -53,6 +55,16 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with Before
     val actual = await[Option[AuthRetrieval]](eventualData).get
 
     actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, credId= actual.credId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+  }
+
+  "returns a Future failure with duplicate DB exception when adding with same key" in {
+    val duplicatedEntry = service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123"))
+
+    await(duplicatedEntry)
+
+    intercept[DatabaseException] {
+      await(duplicatedEntry)
+    }
   }
 
   override def beforeEach(): Unit = await(service.removeAll())

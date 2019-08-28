@@ -49,11 +49,10 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
       options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(60)))
     ),
       Index(
-        Seq("authretrieval.journeyId" -> Ascending,
-            "authretrieval.credId" -> Ascending),
+        Seq("journeyId" -> Ascending,
+            "credId" -> Ascending),
             Option("CompositePrimaryKey"),
-            unique = true,
-            sparse = true
+            unique = true
       )
     )
   }
