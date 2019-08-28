@@ -20,10 +20,10 @@ import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson.{BSONDocument, BSONInteger, BSONObjectID}
 import reactivemongo.core.errors.DatabaseException
-import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.config.{MongoConfiguration, MongoDBClient}
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval._
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -39,14 +39,14 @@ trait AuthRetrievalAlgebra[F[_]] {
 
 class AuthRetrievalDBService(mongoComponent: DBConnector)
   extends ReactiveRepository[AuthRetrieval, BSONObjectID]("authretrieval", mongoComponent.mongoConnector.db, AuthRetrieval.format)
-    with AuthRetrievalAlgebra[Future] {
+    with AuthRetrievalAlgebra[Future] with MongoConfiguration {
 
   override def indexes: Seq[Index] = {
     Seq(
       Index(
       Seq("expireAt" -> Ascending),
       Option("record-ttl"),
-      options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(60)))
+      options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(mongoConfig.ttl)))
     ),
       Index(
         Seq("journeyId" -> Ascending,
