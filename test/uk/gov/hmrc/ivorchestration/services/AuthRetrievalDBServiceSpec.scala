@@ -18,15 +18,17 @@ package uk.gov.hmrc.ivorchestration.services
 
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
+import reactivemongo.api.commands.WriteResult
 import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
-import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.Future
+import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Failure
 
 class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with BeforeAndAfterEach with ScalaFutures {
 
@@ -62,8 +64,19 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with Before
 
     await(duplicatedEntry)
 
-    intercept[DatabaseException] {
-      await(duplicatedEntry)
+    intercept[UnexpectedState] {
+      await(service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
+    }
+  }
+
+  "Returns a Future failed with UnexpectedState for any DB exception" in {
+    val stubFailingService = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnector)) {
+      override def insert(entity: AuthRetrieval)(implicit ec: ExecutionContext): Future[WriteResult] =
+        Future.failed(new Exception("BOOM!"))
+    }
+
+    intercept[UnexpectedState] {
+      await(stubFailingService.insertAuthRetrieval(sampleAuthRetrieval))
     }
   }
 

@@ -22,7 +22,7 @@ import reactivemongo.bson.{BSONDocument, BSONInteger, BSONObjectID}
 import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval._
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -60,12 +60,12 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
   override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[AuthRetrieval] =
     insert(authRetrieval).map(_ => authRetrieval)
       .recoverWith {
-        case e: DatabaseException => Future.failed(e)
+        case e: DatabaseException if e.code.contains(11000) => Future.failed(UnexpectedState("The record already exists!"))
+        case e: Exception => Future.failed(UnexpectedState(e.getMessage))
       }
 
   override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrieval]] = findAll()
 
-  //TODO to be fixed - maybe need index
   override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Future[Option[AuthRetrieval]] = {
     val query = dbKey(journeyId, credId)
     find(query: _*).map(_.headOption)
