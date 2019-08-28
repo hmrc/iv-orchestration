@@ -39,8 +39,6 @@ class AuthRetrievalController @Inject()(val authConnector: AuthConnector, cc: Co
 
   def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
     implicit request =>
-      //TODO: Auth needs to be added here.
-
       authorised() {
         requestsHandler.handleAuthRetrieval(request.body)
           .map(authRetrieval => Created(Json.toJson(authRetrieval)))
