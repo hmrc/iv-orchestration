@@ -18,7 +18,7 @@ package uk.gov.hmrc.ivorchestration.config
 
 trait AppConfiguration extends MongoConfiguration {
 
-  import pureconfig.generic.auto._ //Do not remove this
+  import pureconfig.generic.auto._  //Do not remove this
 
   lazy val authBaseUrl: AuthService = pureconfig.loadConfigOrThrow[AuthService]("microservice.services.auth")
   lazy val auditingEnabled: Boolean = pureconfig.loadConfigOrThrow[Boolean]("auditing.enabled")
