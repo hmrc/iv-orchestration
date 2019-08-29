@@ -23,7 +23,7 @@ import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval._
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -32,41 +32,40 @@ import scala.concurrent.Future
 
 
 trait AuthRetrievalAlgebra[F[_]] {
-  def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrieval]
-  def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrieval]]
-  def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): F[Option[AuthRetrieval]]
+  def insertAuthRetrieval(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): F[AuthRetrievalCore]
+  def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrievalCore]]
+  def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): F[Option[AuthRetrievalCore]]
 }
 
 class AuthRetrievalDBService(mongoComponent: DBConnector)
-  extends ReactiveRepository[AuthRetrieval, BSONObjectID]("authretrieval", mongoComponent.mongoConnector.db, AuthRetrieval.format)
+  extends ReactiveRepository[AuthRetrievalCore, BSONObjectID]("authretrievals", mongoComponent.mongoConnector.db, AuthRetrievalCore.format)
     with AuthRetrievalAlgebra[Future] with MongoConfiguration {
 
   override def indexes: Seq[Index] = {
     Seq(
       Index(
-        Seq("loginTimes" -> Ascending),
-        Option("record-ttl"),
+        Seq("createdAt" -> Ascending),
         options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(mongoConfig.ttl)))
     ),
       Index(
-        Seq("journeyId" -> Ascending,
-            "credId" -> Ascending),
+        Seq("authretrieval.journeyId" -> Ascending,
+            "authretrieval.credId" -> Ascending),
             Option("CompositePrimaryKey"),
             unique = true
       )
     )
   }
 
-  override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Future[AuthRetrieval] =
-    insert(authRetrieval).map(_ => authRetrieval)
+  override def insertAuthRetrieval(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): Future[AuthRetrievalCore] =
+    insert(authRetrievalCore).map(_ => authRetrievalCore)
       .recoverWith {
         case e: DatabaseException if e.code.contains(11000) => Future.failed(UnexpectedState("The record already exists!"))
         case e: Exception => Future.failed(UnexpectedState(e.getMessage))
       }
 
-  override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrieval]] = findAll()
+  override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrievalCore]] = findAll()
 
-  override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Future[Option[AuthRetrieval]] = {
+  override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Future[Option[AuthRetrievalCore]] = {
     val query = dbKey(journeyId, credId)
     find(query: _*).map(_.headOption)
   }

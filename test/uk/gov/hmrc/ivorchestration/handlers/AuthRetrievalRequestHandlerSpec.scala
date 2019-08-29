@@ -22,7 +22,7 @@ import cats.Id
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
-import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore}
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
 
 class AuthRetrievalRequestHandlerSpec extends BaseSpec {
@@ -30,7 +30,7 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
   "Given AuthRetrieval" should {
     "JourneyId is generated for AuthRetrieval" in new AuthRetrievalRequestHandler[Id](algebra) {
-      handleAuthRetrieval(sampleAuthRetrieval).journeyId.isDefined mustBe true
+      handleAuthRetrieval(sampleAuthRetrieval).authRetrieval.journeyId.isDefined mustBe true
     }
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new AuthRetrievalRequestHandler[Id](algebra) {
@@ -42,11 +42,11 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
   val called = new AtomicBoolean(false)
 
   val algebra = new AuthRetrievalAlgebra[Id] {
-    override def findAuthRetrievals()(implicit hc: HeaderCarrier): Id[List[AuthRetrieval]] = ???
-    override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Id[Option[AuthRetrieval]] = ???
-    override def insertAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): Id[AuthRetrieval] = {
-      val persisted = sampleAuthRetrieval.copy(journeyId = authRetrieval.journeyId)
-      authRetrieval mustBe persisted
+    override def findAuthRetrievals()(implicit hc: HeaderCarrier): Id[List[AuthRetrievalCore]] = ???
+    override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Id[Option[AuthRetrievalCore]] = ???
+    override def insertAuthRetrieval(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): Id[AuthRetrievalCore] = {
+      val persisted = buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = authRetrievalCore.authRetrieval.journeyId))
+      authRetrievalCore mustBe persisted
       called.set(true)
       persisted
     }

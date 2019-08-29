@@ -21,9 +21,10 @@ import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.api.commands.WriteResult
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
+import com.softwaremill.quicklens._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -35,46 +36,48 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with Before
   val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnector))
 
   "can Add and retrieve AuthRetrieval entity" in {
-    val eventualData: Future[List[AuthRetrieval]] = for {
-      _    <- service.insertAuthRetrieval(sampleAuthRetrieval)
+    val eventualData: Future[List[AuthRetrievalCore]] = for {
+      _    <- service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval))
       data <- service.findAuthRetrievals()
     } yield data
 
-    val actual = await[List[AuthRetrieval]](eventualData).head
+    val actual = await[List[AuthRetrievalCore]](eventualData).head.authRetrieval
 
     actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
-  "can Add and retrieve AuthRetrieval entity by journeyId & GGCredId" in {
-    val eventualData: Future[Option[AuthRetrieval]] = for {
-      persisted    <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123"))
-      _            <- service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("333"), credId = "9999"))
-      data         <- service.findJourneyIdAndCredId(persisted.journeyId.getOrElse(""), persisted.credId)
+  "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
+    val eventualData: Future[Option[AuthRetrievalCore]] = for {
+      persisted    <- service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
+      _ = println("==>" + await(service.findAuthRetrievals()))
+      _            <- service.insertAuthRetrieval(persisted.modify(_.authRetrieval.journeyId).setTo(Some("333")))
+      _ = println("XXX" + await(service.findAuthRetrievals()))
+      data         <- service.findJourneyIdAndCredId(persisted.authRetrieval.journeyId.getOrElse(""), persisted.authRetrieval.credId)
     } yield data
 
-    val actual = await[Option[AuthRetrieval]](eventualData).get
+    val actual = await[Option[AuthRetrievalCore]](eventualData).get.authRetrieval
 
     actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, credId= actual.credId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
   "returns a Future failure with duplicate DB exception when adding with same key" in {
-    val duplicatedEntry = service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123"))
+    val duplicatedEntry = service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
 
     await(duplicatedEntry)
 
     intercept[UnexpectedState] {
-      await(service.insertAuthRetrieval(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
+      await(service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123"))))
     }
   }
 
   "Returns a Future failed with UnexpectedState for any DB exception" in {
     val stubFailingService = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnector)) {
-      override def insert(entity: AuthRetrieval)(implicit ec: ExecutionContext): Future[WriteResult] =
+      override def insert(entity: AuthRetrievalCore)(implicit ec: ExecutionContext): Future[WriteResult] =
         Future.failed(new Exception("BOOM!"))
     }
 
     intercept[UnexpectedState] {
-      await(stubFailingService.insertAuthRetrieval(sampleAuthRetrieval))
+      await(stubFailingService.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval)))
     }
   }
 

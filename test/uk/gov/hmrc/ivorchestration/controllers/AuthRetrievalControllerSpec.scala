@@ -31,10 +31,11 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
+import com.softwaremill.quicklens._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -51,9 +52,11 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     }
     
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
-    val actual = contentAsJson(result).as[AuthRetrieval]
-
-    val expectedRetrieval = sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+    val actual = contentAsJson(result).as[AuthRetrievalCore]
+    val expectedRetrieval = sampleAuthRetrievalCore
+      .modify(_.createdAt).setTo(actual.createdAt)
+      .modify(_.authRetrieval.journeyId).setTo(actual.authRetrieval.journeyId)
+      .modify(_.authRetrieval.loginTimes).setTo(actual.authRetrieval.loginTimes)
 
     status(result) mustBe CREATED
     actual mustBe expectedRetrieval

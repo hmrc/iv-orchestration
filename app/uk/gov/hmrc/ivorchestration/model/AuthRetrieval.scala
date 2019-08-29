@@ -23,16 +23,16 @@ import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 
 object AuthRetrieval {
 
+  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
+
   implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](JodaReads.jodaLocalDateReads("yyyy-MM-dd"), JodaWrites.jodaLocalDateWrites("yyyy-MM-dd"))
 
   implicit val itmpAddressFormat: Format[ItmpAddress] = Json.format[ItmpAddress]
 
-  import uk.gov.hmrc.mongo.json.ReactiveMongoFormats.dateTimeFormats
-
   implicit val format = Json.format[AuthRetrieval]
 
   val dbKey: (String, String) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq("journeyId" -> JsString(journeyId), "credId" -> JsString(credId))
+    (journeyId, credId) => Seq("authretrieval.journeyId" -> JsString(journeyId), "authretrieval.credId" -> JsString(credId))
 }
 
 case class AuthRetrieval(
@@ -46,8 +46,15 @@ case class AuthRetrieval(
                           postCode: Option[String],
                           firstName: Option[String],
                           lastName: Option[String],
-                          dateOfbirth: Option[LocalDate],
-                          ttl: Int
+                          dateOfbirth: Option[LocalDate]
                         )
+
+case class AuthRetrievalCore(authRetrieval: AuthRetrieval, createdAt: DateTime)
+
+object AuthRetrievalCore {
+  import uk.gov.hmrc.mongo.json.ReactiveMongoFormats.dateTimeFormats
+
+  implicit val format = Json.format[AuthRetrievalCore]
+}
 
 
