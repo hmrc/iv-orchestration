@@ -49,9 +49,7 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with Before
   "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
     val eventualData: Future[Option[AuthRetrievalCore]] = for {
       persisted    <- service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
-      _ = println("==>" + await(service.findAuthRetrievals()))
       _            <- service.insertAuthRetrieval(persisted.modify(_.authRetrieval.journeyId).setTo(Some("333")))
-      _ = println("XXX" + await(service.findAuthRetrievals()))
       data         <- service.findJourneyIdAndCredId(persisted.authRetrieval.journeyId.getOrElse(""), persisted.authRetrieval.credId)
     } yield data
 

@@ -48,9 +48,9 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
         options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(mongoConfig.ttl)))
     ),
       Index(
-        Seq("authretrieval.journeyId" -> Ascending,
-            "authretrieval.credId" -> Ascending),
-            Option("CompositePrimaryKey"),
+        Seq("authRetrieval.journeyId" -> Ascending,
+            "authRetrieval.credId" -> Ascending),
+            Option("Primary"),
             unique = true
       )
     )
@@ -59,7 +59,8 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
   override def insertAuthRetrieval(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): Future[AuthRetrievalCore] =
     insert(authRetrievalCore).map(_ => authRetrievalCore)
       .recoverWith {
-        case e: DatabaseException if e.code.contains(11000) => Future.failed(UnexpectedState("The record already exists!"))
+        case e: DatabaseException if e.code.contains(11000) =>
+          Future.failed(UnexpectedState("The record already exists!"))
         case e: Exception => Future.failed(UnexpectedState(e.getMessage))
       }
 
