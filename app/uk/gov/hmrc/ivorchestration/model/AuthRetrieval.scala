@@ -19,15 +19,13 @@ package uk.gov.hmrc.ivorchestration.model
 import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
-import uk.gov.hmrc.auth.core.retrieve.{GGCredId, ItmpAddress}
+import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 
 object AuthRetrieval {
 
   implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](JodaReads.jodaLocalDateReads("yyyy-MM-dd"), JodaWrites.jodaLocalDateWrites("yyyy-MM-dd"))
 
   implicit val itmpAddressFormat: Format[ItmpAddress] = Json.format[ItmpAddress]
-
-  implicit val ggCredIdFormat: Format[GGCredId] = Json.format[GGCredId]
 
   import uk.gov.hmrc.mongo.json.ReactiveMongoFormats.dateTimeFormats
 

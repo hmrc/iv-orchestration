@@ -43,10 +43,6 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
-    val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnector))
-    val handler = new AuthRetrievalRequestHandler[Future](service)
-    val authConnector = mock[AuthConnector]
-
     val controller = new AuthRetrievalController(authConnector, stubControllerComponents()) {
       override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
       override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
