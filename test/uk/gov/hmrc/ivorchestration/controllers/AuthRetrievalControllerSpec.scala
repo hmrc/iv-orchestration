@@ -31,7 +31,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
-import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
@@ -57,6 +57,19 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
     status(result) mustBe CREATED
     actual mustBe expectedRetrieval
+  }
+
+  "returns a 401 UNAUTHORIZED if not authorised" in {
+    val controller = new AuthRetrievalController(authConnector, stubControllerComponents()) {
+      override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
+      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(UnexpectedState("wrong"))
+      }
+    }
+
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
+
+    status(result) mustBe UNAUTHORIZED
   }
 
   "returns a 400 BAD_REQUEST for an invalid AuthRetrieval request" in {
