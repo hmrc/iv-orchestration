@@ -48,7 +48,7 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
         options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(mongoConfig.ttl)))
     ),
       Index(
-        Seq("authRetrieval.journeyId.value" -> Ascending,
+        Seq("authRetrieval.journeyId" -> Ascending,
             "authRetrieval.credId" -> Ascending),
             Option("Primary"),
             unique = true

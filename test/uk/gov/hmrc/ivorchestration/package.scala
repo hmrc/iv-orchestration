@@ -18,12 +18,12 @@ package uk.gov.hmrc
 
 import org.joda.time.{DateTime, LocalDate}
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore}
 
 package object ivorchestration {
 
   val sampleItmpAddress = ItmpAddress(Some("5 Street"),Some("Worthing"),Some("West Sussex"),None,None,Some("BN13 3AS"),Some("England"),Some("44"))
-  val sampleAuthRetrieval = AuthRetrieval(JourneyId("123"), "777", Some("123455"),200,
+  val sampleAuthRetrieval = AuthRetrieval(None, "777", Some("123455"),200,
     Some(DateTime.now),Some("123"),Some(sampleItmpAddress),Some("BN13 3AS"),Some("Matt"),Some("Groom"), Some(LocalDate.now))
 
   val sampleAuthRetrievalCore = AuthRetrievalCore(sampleAuthRetrieval, new DateTime)

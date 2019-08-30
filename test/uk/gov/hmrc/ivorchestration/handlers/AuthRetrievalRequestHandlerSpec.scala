@@ -22,7 +22,7 @@ import cats.Id
 import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore}
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
 
 class AuthRetrievalRequestHandlerSpec extends BaseSpec {
@@ -30,9 +30,7 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
   "Given AuthRetrieval" should {
     "JourneyId is generated for AuthRetrieval" in new AuthRetrievalRequestHandler[Id](algebra) {
-      handleAuthRetrieval(sampleAuthRetrieval).authRetrieval.journeyId must matchPattern {
-        case JourneyId(_) =>
-      }
+      handleAuthRetrieval(sampleAuthRetrieval).authRetrieval.journeyId.isDefined mustBe true
     }
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new AuthRetrievalRequestHandler[Id](algebra) {
