@@ -24,7 +24,7 @@ import uk.gov.hmrc.auth.core.AuthorisedFunctions
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
-import uk.gov.hmrc.ivorchestration.model.AuthRetrieval
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, JourneyId}
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
@@ -41,7 +41,7 @@ class AuthRetrievalController @Inject()(val authConnector: AuthConnector, cc: Co
     implicit request =>
       authorised() {
         requestsHandler.handleAuthRetrieval(request.body)
-          .map(authRetrieval => Created(Json.toJson(authRetrieval)))
+          .map(retrievalCore => Created(Json.toJson(JourneyId(retrievalCore.authRetrieval.journeyId.getOrElse("")))))
       }.recoverWith {
         case _ => Future.successful(Unauthorized)
       }
