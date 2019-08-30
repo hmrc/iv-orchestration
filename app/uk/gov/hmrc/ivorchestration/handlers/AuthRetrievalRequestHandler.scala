@@ -21,13 +21,13 @@ import java.util.UUID
 import cats.Monad
 import org.joda.time.DateTime
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
 
 class AuthRetrievalRequestHandler[F[_]: Monad](authRetrievalAlgebra: AuthRetrievalAlgebra[F]) {
 
   def handleAuthRetrieval(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrievalCore] =
-    persist(AuthRetrievalCore(authRetrieval.copy(journeyId = Some(UUID.randomUUID().toString)), new DateTime))
+    persist(AuthRetrievalCore(authRetrieval.copy(journeyId = JourneyId(UUID.randomUUID().toString)), new DateTime))
 
   protected def persist(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): F[AuthRetrievalCore] =
     authRetrievalAlgebra.insertAuthRetrieval(authRetrievalCore)

@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.api.commands.WriteResult
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, JourneyId, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import com.softwaremill.quicklens._
@@ -48,9 +48,9 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with Before
 
   "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
     val eventualData: Future[Option[AuthRetrievalCore]] = for {
-      persisted    <- service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
-      _            <- service.insertAuthRetrieval(persisted.modify(_.authRetrieval.journeyId).setTo(Some("333")))
-      data         <- service.findJourneyIdAndCredId(persisted.authRetrieval.journeyId.getOrElse(""), persisted.authRetrieval.credId)
+      persisted    <- service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = JourneyId("111"), credId = "123")))
+      _            <- service.insertAuthRetrieval(persisted.modify(_.authRetrieval.journeyId).setTo(JourneyId("333")))
+      data         <- service.findJourneyIdAndCredId(persisted.authRetrieval.journeyId.value, persisted.authRetrieval.credId)
     } yield data
 
     val actual = await[Option[AuthRetrievalCore]](eventualData).get.authRetrieval
@@ -59,12 +59,12 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with Before
   }
 
   "returns a Future failure with duplicate DB exception when adding with same key" in {
-    val duplicatedEntry = service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
+    val duplicatedEntry = service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = JourneyId("111"), credId = "123")))
 
     await(duplicatedEntry)
 
     intercept[UnexpectedState] {
-      await(service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123"))))
+      await(service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = JourneyId("111"), credId = "123"))))
     }
   }
 

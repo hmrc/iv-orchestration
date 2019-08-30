@@ -31,7 +31,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, JourneyId, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
@@ -52,14 +52,13 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     }
     
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
-    val actual = contentAsJson(result).as[AuthRetrievalCore]
-    val expectedRetrieval = sampleAuthRetrievalCore
-      .modify(_.createdAt).setTo(actual.createdAt)
-      .modify(_.authRetrieval.journeyId).setTo(actual.authRetrieval.journeyId)
-      .modify(_.authRetrieval.loginTimes).setTo(actual.authRetrieval.loginTimes)
+    println(await(result) + "+++++++")
+    val actual = contentAsJson(result).as[JourneyId]
 
     status(result) mustBe CREATED
-    actual mustBe expectedRetrieval
+    actual must matchPattern {
+      case JourneyId(_) =>
+    }
   }
 
   "returns a 401 UNAUTHORIZED if not authorised" in {
