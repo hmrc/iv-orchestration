@@ -22,8 +22,9 @@ import reactivemongo.bson.{BSONDocument, BSONInteger, BSONObjectID}
 import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
-import uk.gov.hmrc.ivorchestration.model.AuthRetrieval._
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, JourneyId, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.model.api.IvSessionData._
+import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.UnexpectedState
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -31,15 +32,15 @@ import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 
-trait AuthRetrievalAlgebra[F[_]] {
-  def insertAuthRetrieval(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): F[AuthRetrievalCore]
-  def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrievalCore]]
-  def findJourneyIdAndCredId(journeyId: JourneyId, credId: String)(implicit hc: HeaderCarrier): F[Option[AuthRetrievalCore]]
+trait IvSessionDataRepositoryAlgebra[F[_]] {
+  def insertIvSessionData(authRetrievalCore: IvSessionDataCore): F[IvSessionDataCore]
+  def retrieveAll(): F[List[IvSessionDataCore]]
+  def findByKey(journeyId: JourneyId, credId: String): F[Option[IvSessionDataCore]]
 }
 
-class AuthRetrievalDBService(mongoComponent: DBConnector)
-  extends ReactiveRepository[AuthRetrievalCore, BSONObjectID]("authretrievals", mongoComponent.mongoConnector.db, AuthRetrievalCore.format)
-    with AuthRetrievalAlgebra[Future] with MongoConfiguration {
+class IvSessionDataRepositoryDBService(mongoComponent: DBConnector)
+  extends ReactiveRepository[IvSessionDataCore, BSONObjectID]("iv-session-data", mongoComponent.mongoConnector.db, IvSessionDataCore.format)
+    with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
 
   override def indexes: Seq[Index] = {
     Seq(
@@ -49,24 +50,24 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
     ),
       Index(
         Seq("journeyId" -> Ascending,
-            "authRetrieval.credId" -> Ascending),
+            "ivSessionData.credId" -> Ascending),
             Option("Primary"),
             unique = true
       )
     )
   }
 
-  override def insertAuthRetrieval(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): Future[AuthRetrievalCore] =
-    insert(authRetrievalCore).map(_ => authRetrievalCore)
+  override def insertIvSessionData(ivSessionDataCore: IvSessionDataCore): Future[IvSessionDataCore] =
+    insert(ivSessionDataCore).map(_ => ivSessionDataCore)
       .recoverWith {
         case e: DatabaseException if e.code.contains(11000) =>
           Future.failed(UnexpectedState("The record already exists!"))
         case e: Exception => Future.failed(UnexpectedState(e.getMessage))
       }
 
-  override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrievalCore]] = findAll()
+  override def retrieveAll(): Future[List[IvSessionDataCore]] = findAll()
 
-  override def findJourneyIdAndCredId(journeyId: JourneyId, credId: String)(implicit hc: HeaderCarrier): Future[Option[AuthRetrievalCore]] = {
+  override def findByKey(journeyId: JourneyId, credId: String): Future[Option[IvSessionDataCore]] = {
     val query = dbKey(journeyId, credId)
     find(query: _*).map(_.headOption)
   }

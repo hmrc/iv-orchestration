@@ -22,21 +22,22 @@ import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthorisedFunctions
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
-import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, JourneyId}
-import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
+import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
+import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
+import uk.gov.hmrc.ivorchestration.model.core.JourneyId
+import uk.gov.hmrc.ivorchestration.services.IvSessionDataRepositoryDBService
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 
 @Singleton()
-class AuthRetrievalController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
+class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
   extends BackendController(cc) with MongoDBClient with AuthorisedFunctions {
 
-  val requestsHandler = new AuthRetrievalRequestHandler[Future](new AuthRetrievalDBService(dbConnector))
+  val requestsHandler = new IvSessionDataRequestHandler[Future](new IvSessionDataRepositoryDBService(dbConnector))
 
-  def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
+  def ivSessionData(): Action[IvSessionData] = Action.async(parse.json[IvSessionData]) {
     implicit request =>
       authorised() {
         requestsHandler.handle(request.body, request.headers.toSimpleMap).map(Created(_))

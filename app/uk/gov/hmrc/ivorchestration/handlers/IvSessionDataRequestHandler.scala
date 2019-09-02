@@ -23,22 +23,23 @@ import cats.syntax.functor._
 import cats.syntax.flatMap._
 import org.joda.time.DateTime
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore, JourneyId}
-import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
+import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
+import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.services.IvSessionDataRepositoryAlgebra
 
-class AuthRetrievalRequestHandler[F[_]: Monad](authRetrievalAlgebra: AuthRetrievalAlgebra[F]) {
+class IvSessionDataRequestHandler[F[_]: Monad](authRetrievalAlgebra: IvSessionDataRepositoryAlgebra[F]) {
 
-  def handle(authRetrieval: AuthRetrieval, headers: Map[String, String])(implicit hc: HeaderCarrier, me: MonadError[F, Throwable]): F[String] =
+  def handle(authRetrieval: IvSessionData, headers: Map[String, String])(implicit hc: HeaderCarrier, me: MonadError[F, Throwable]): F[String] =
     generateIdAndPersist(authRetrieval).map(core => buildUri(core.journeyId, headers)) flatMap {
       case None => me.raiseError(new Exception("missing header"))
       case Some(r) => me.pure(r)
     }
 
-  protected def generateIdAndPersist(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrievalCore] =
-    persist(AuthRetrievalCore(authRetrieval, JourneyId(UUID.randomUUID().toString), new DateTime))
+  protected def generateIdAndPersist(authRetrieval: IvSessionData)(implicit hc: HeaderCarrier): F[IvSessionDataCore] =
+    persist(IvSessionDataCore(authRetrieval, JourneyId(UUID.randomUUID().toString), new DateTime))
 
-  protected def persist(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): F[AuthRetrievalCore] =
-    authRetrievalAlgebra.insertAuthRetrieval(authRetrievalCore)
+  protected def persist(authRetrievalCore: IvSessionDataCore)(implicit hc: HeaderCarrier): F[IvSessionDataCore] =
+    authRetrievalAlgebra.insertIvSessionData(authRetrievalCore)
 
   protected def buildUri(journeyId: JourneyId, headers: Map[String, String]): Option[String] =
     headers.get("Raw-Request-URI").map(location => s"$location/${journeyId.value}" )

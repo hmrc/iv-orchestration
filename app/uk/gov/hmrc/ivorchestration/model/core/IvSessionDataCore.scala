@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration.model
+package uk.gov.hmrc.ivorchestration.model.core
 
-import play.api.libs.json.{Format, JsResult, JsString, JsValue}
+import org.joda.time.DateTime
+import play.api.libs.json.Json
+import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
 
-case class JourneyId(value: String) extends Product with Serializable
+case class IvSessionDataCore(ivSessionData: IvSessionData, journeyId: JourneyId, createdAt: DateTime)
 
+object IvSessionDataCore {
+  import uk.gov.hmrc.mongo.json.ReactiveMongoFormats.dateTimeFormats
 
-object JourneyId {
-  implicit val format = new Format[JourneyId] {
-    override def reads(json: JsValue): JsResult[JourneyId] = json.validate[String].map(JourneyId(_))
-
-    override def writes(o: JourneyId): JsValue = JsString(o.value)
-  }
+  implicit val format = Json.format[IvSessionDataCore]
 }
