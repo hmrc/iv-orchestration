@@ -30,11 +30,15 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
   "Given AuthRetrieval" should {
     "JourneyId is generated for AuthRetrieval" in new AuthRetrievalRequestHandler[Id](algebra) {
-      handleAuthRetrieval(sampleAuthRetrieval).authRetrieval.journeyId.isDefined mustBe true
+      generateIdAndPersist(sampleAuthRetrieval).authRetrieval.journeyId.isDefined mustBe true
+    }
+
+    "JourneyId is generated and appended to the returned uri" in new AuthRetrievalRequestHandler[Id](algebra) {
+      buildUri(Option("3456"), Map("Raw-Request-URI" -> "/iv-orchestration/iv-sessiondata")) mustBe Some("/iv-orchestration/iv-sessiondata/3456")
     }
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new AuthRetrievalRequestHandler[Id](algebra) {
-      val authRetrieval = handleAuthRetrieval(sampleAuthRetrieval)
+      val authRetrieval = generateIdAndPersist(sampleAuthRetrieval)
       called.get mustBe true
     }
   }

@@ -50,13 +50,12 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       }
     }
     
-    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
-    val actual = contentAsJson(result).as[JourneyId]
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
+      .withBody(sampleAuthRetrieval).withHeaders("Raw-Request-URI" -> "iv-sessiondata"))
+    val actual = contentAsString(result)
 
     status(result) mustBe CREATED
-    actual must matchPattern {
-      case JourneyId(_) =>
-    }
+    actual must include("iv-sessiondata/")
   }
 
   "returns a 401 UNAUTHORIZED if not authorised" in {

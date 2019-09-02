@@ -18,7 +18,6 @@ package uk.gov.hmrc.ivorchestration.controllers
 
 import cats.instances.future._
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json._
 import play.api.mvc.{Action, ControllerComponents}
 import uk.gov.hmrc.auth.core.AuthorisedFunctions
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
@@ -40,8 +39,7 @@ class AuthRetrievalController @Inject()(val authConnector: AuthConnector, cc: Co
   def ivSessionData(): Action[AuthRetrieval] = Action.async(parse.json[AuthRetrieval]) {
     implicit request =>
       authorised() {
-        requestsHandler.handleAuthRetrieval(request.body)
-          .map(retrievalCore => Created(Json.toJson(JourneyId(retrievalCore.authRetrieval.journeyId.getOrElse("")))))
+        requestsHandler.handle(request.body, request.headers.toSimpleMap).map(Created(_))
       }.recoverWith {
         case _ => Future.successful(Unauthorized)
       }
