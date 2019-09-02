@@ -19,22 +19,23 @@ package uk.gov.hmrc.ivorchestration.handlers
 import java.util.concurrent.atomic.AtomicBoolean
 
 import cats.Id
-import uk.gov.hmrc.auth.core.retrieve.GGCredId
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
+import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 
 class AuthRetrievalRequestHandlerSpec extends BaseSpec {
   implicit val hc = HeaderCarrier()
 
   "Given AuthRetrieval" should {
-    "JourneyId is generated for AuthRetrieval" in new AuthRetrievalRequestHandler[Id](algebra) {
-      generateIdAndPersist(sampleAuthRetrieval).authRetrieval.journeyId.isDefined mustBe true
+    "JourneyId is generated for iv-session-data" in new AuthRetrievalRequestHandler[Id](algebra) {
+      generateIdAndPersist(sampleAuthRetrieval) must matchPattern {
+        case AuthRetrievalCore(_, JourneyId(_), _) =>
+      }
     }
 
     "JourneyId is generated and appended to the returned uri" in new AuthRetrievalRequestHandler[Id](algebra) {
-      buildUri(Option("3456"), Map("Raw-Request-URI" -> "/iv-orchestration/iv-sessiondata")) mustBe Some("/iv-orchestration/iv-sessiondata/3456")
+      buildUri(JourneyId("3456"), Map("Raw-Request-URI" -> "/iv-orchestration/iv-sessiondata")) mustBe Some("/iv-orchestration/iv-sessiondata/3456")
     }
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new AuthRetrievalRequestHandler[Id](algebra) {
@@ -47,10 +48,12 @@ class AuthRetrievalRequestHandlerSpec extends BaseSpec {
 
   val algebra = new AuthRetrievalAlgebra[Id] {
     override def findAuthRetrievals()(implicit hc: HeaderCarrier): Id[List[AuthRetrievalCore]] = ???
-    override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Id[Option[AuthRetrievalCore]] = ???
+    override def findJourneyIdAndCredId(journeyId: JourneyId, credId: String)(implicit hc: HeaderCarrier): Id[Option[AuthRetrievalCore]] = ???
     override def insertAuthRetrieval(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): Id[AuthRetrievalCore] = {
-      val persisted = buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = authRetrievalCore.authRetrieval.journeyId))
-      authRetrievalCore mustBe persisted
+      val persisted = sampleAuthRetrievalCore.copy(journeyId = authRetrievalCore.journeyId)
+      authRetrievalCore must matchPattern {
+        case AuthRetrievalCore(_, JourneyId(_), _) =>
+      }
       called.set(true)
       persisted
     }

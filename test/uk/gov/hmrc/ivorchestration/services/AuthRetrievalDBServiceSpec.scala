@@ -21,7 +21,7 @@ import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.api.commands.WriteResult
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, JourneyId, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 import com.softwaremill.quicklens._
@@ -43,28 +43,33 @@ class AuthRetrievalDBServiceSpec extends BaseSpec with MongoDBClient with Before
 
     val actual = await[List[AuthRetrievalCore]](eventualData).head.authRetrieval
 
-    actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+    actual mustBe sampleAuthRetrieval.copy(loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
   }
 
   "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
     val eventualData: Future[Option[AuthRetrievalCore]] = for {
-      persisted    <- service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
-      _            <- service.insertAuthRetrieval(persisted.modify(_.authRetrieval.journeyId).setTo(Some("333")))
-      data         <- service.findJourneyIdAndCredId(persisted.authRetrieval.journeyId.getOrElse(""), persisted.authRetrieval.credId)
+      persisted    <- service.insertAuthRetrieval(sampleAuthRetrievalCore.modify(_.authRetrieval.credId).setTo("123").copy(journeyId = JourneyId("111")))
+      _            <- service.insertAuthRetrieval(persisted.modify(_.journeyId).setTo(JourneyId("333")))
+      data         <- service.findJourneyIdAndCredId(persisted.journeyId, persisted.authRetrieval.credId)
     } yield data
 
-    val actual = await[Option[AuthRetrievalCore]](eventualData).get.authRetrieval
+    val actual = await[Option[AuthRetrievalCore]](eventualData).get
+    import actual.authRetrieval._
 
-    actual mustBe sampleAuthRetrieval.copy(journeyId = actual.journeyId, credId= actual.credId, loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+    actual mustBe sampleAuthRetrievalCore
+      .modify(_.journeyId).setTo(actual.journeyId)
+      .modify(_.authRetrieval.credId).setTo(credId)
+      .modify(_.authRetrieval.loginTimes).setTo(loginTimes)
+      .modify(_.authRetrieval.dateOfbirth).setTo(dateOfbirth)
   }
 
   "returns a Future failure with duplicate DB exception when adding with same key" in {
-    val duplicatedEntry = service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123")))
+    val duplicatedEntry = sampleAuthRetrievalCore.copy(journeyId = JourneyId("111")).modify(_.authRetrieval.credId).setTo("123")
 
-    await(duplicatedEntry)
+    await(service.insertAuthRetrieval(duplicatedEntry))
 
     intercept[UnexpectedState] {
-      await(service.insertAuthRetrieval(buildRetrievalCore(sampleAuthRetrieval.copy(journeyId = Some("111"), credId = "123"))))
+      await(service.insertAuthRetrieval(duplicatedEntry))
     }
   }
 

@@ -31,12 +31,11 @@ object AuthRetrieval {
 
   implicit val format = Json.format[AuthRetrieval]
 
-  val dbKey: (String, String) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq("authRetrieval.journeyId" -> JsString(journeyId), "authRetrieval.credId" -> JsString(credId))
+  val dbKey: (JourneyId, String) => Seq[(String, JsValueWrapper)] =
+    (journeyId, credId) => Seq("journeyId" -> Json.toJson(journeyId), "authRetrieval.credId" -> JsString(credId))
 }
 
 case class AuthRetrieval(
-                          journeyId: Option[String],
                           credId: String,
                           nino: Option[String],
                           confidenceLevel: Int,
@@ -49,7 +48,7 @@ case class AuthRetrieval(
                           dateOfbirth: Option[LocalDate]
                         )
 
-case class AuthRetrievalCore(authRetrieval: AuthRetrieval, createdAt: DateTime)
+case class AuthRetrievalCore(authRetrieval: AuthRetrieval, journeyId: JourneyId, createdAt: DateTime)
 
 object AuthRetrievalCore {
   import uk.gov.hmrc.mongo.json.ReactiveMongoFormats.dateTimeFormats

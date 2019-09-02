@@ -23,7 +23,7 @@ import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
 import uk.gov.hmrc.ivorchestration.model.AuthRetrieval._
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrievalCore, JourneyId, UnexpectedState}
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -34,7 +34,7 @@ import scala.concurrent.Future
 trait AuthRetrievalAlgebra[F[_]] {
   def insertAuthRetrieval(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): F[AuthRetrievalCore]
   def findAuthRetrievals()(implicit hc: HeaderCarrier): F[List[AuthRetrievalCore]]
-  def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): F[Option[AuthRetrievalCore]]
+  def findJourneyIdAndCredId(journeyId: JourneyId, credId: String)(implicit hc: HeaderCarrier): F[Option[AuthRetrievalCore]]
 }
 
 class AuthRetrievalDBService(mongoComponent: DBConnector)
@@ -48,7 +48,7 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
         options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(mongoConfig.ttl)))
     ),
       Index(
-        Seq("authRetrieval.journeyId" -> Ascending,
+        Seq("journeyId" -> Ascending,
             "authRetrieval.credId" -> Ascending),
             Option("Primary"),
             unique = true
@@ -66,7 +66,7 @@ class AuthRetrievalDBService(mongoComponent: DBConnector)
 
   override def findAuthRetrievals()(implicit hc: HeaderCarrier): Future[List[AuthRetrievalCore]] = findAll()
 
-  override def findJourneyIdAndCredId(journeyId: String, credId: String)(implicit hc: HeaderCarrier): Future[Option[AuthRetrievalCore]] = {
+  override def findJourneyIdAndCredId(journeyId: JourneyId, credId: String)(implicit hc: HeaderCarrier): Future[Option[AuthRetrievalCore]] = {
     val query = dbKey(journeyId, credId)
     find(query: _*).map(_.headOption)
   }

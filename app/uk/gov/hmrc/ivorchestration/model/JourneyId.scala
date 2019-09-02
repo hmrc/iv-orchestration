@@ -16,11 +16,15 @@
 
 package uk.gov.hmrc.ivorchestration.model
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Format, JsResult, JsString, JsValue}
 
-case class JourneyId(value: String)
+case class JourneyId(value: String) extends Product with Serializable
 
 
-case object JourneyId {
-  implicit val format = Json.format[JourneyId]
+object JourneyId {
+  implicit val format = new Format[JourneyId] {
+    override def reads(json: JsValue): JsResult[JourneyId] = json.validate[String].map(JourneyId(_))
+
+    override def writes(o: JourneyId): JsValue = JsString(o.value)
+  }
 }

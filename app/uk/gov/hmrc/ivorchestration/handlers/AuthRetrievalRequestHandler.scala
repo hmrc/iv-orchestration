@@ -18,32 +18,29 @@ package uk.gov.hmrc.ivorchestration.handlers
 
 import java.util.UUID
 
-import cats.{ Monad, MonadError}
+import cats.{Monad, MonadError}
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import org.joda.time.DateTime
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore}
+import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.services.AuthRetrievalAlgebra
 
 class AuthRetrievalRequestHandler[F[_]: Monad](authRetrievalAlgebra: AuthRetrievalAlgebra[F]) {
 
   def handle(authRetrieval: AuthRetrieval, headers: Map[String, String])(implicit hc: HeaderCarrier, me: MonadError[F, Throwable]): F[String] =
-    generateIdAndPersist(authRetrieval).map(core => buildUri(core.authRetrieval.journeyId, headers)) flatMap {
+    generateIdAndPersist(authRetrieval).map(core => buildUri(core.journeyId, headers)) flatMap {
       case None => me.raiseError(new Exception("missing header"))
       case Some(r) => me.pure(r)
     }
 
   protected def generateIdAndPersist(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrievalCore] =
-    persist(AuthRetrievalCore(authRetrieval.copy(journeyId = Some(UUID.randomUUID().toString)), new DateTime))
+    persist(AuthRetrievalCore(authRetrieval, JourneyId(UUID.randomUUID().toString), new DateTime))
 
   protected def persist(authRetrievalCore: AuthRetrievalCore)(implicit hc: HeaderCarrier): F[AuthRetrievalCore] =
     authRetrievalAlgebra.insertAuthRetrieval(authRetrievalCore)
 
-  protected def buildUri(journeyId: Option[String], headers: Map[String, String]): Option[String] =
-   for {
-    id <- journeyId
-    uri <- headers.get("Raw-Request-URI")
-  } yield s"$uri/$id"
+  protected def buildUri(journeyId: JourneyId, headers: Map[String, String]): Option[String] =
+    headers.get("Raw-Request-URI").map(location => s"$location/${journeyId.value}" )
 }
 
