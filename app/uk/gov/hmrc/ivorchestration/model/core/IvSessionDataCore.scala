@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration.model
+package uk.gov.hmrc.ivorchestration.model.core
 
+import org.joda.time.DateTime
 import play.api.libs.json.Json
+import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
 
-case class JourneyId(value: String)
+case class IvSessionDataCore(ivSessionData: IvSessionData, journeyId: JourneyId, createdAt: DateTime)
 
+object IvSessionDataCore {
+  import uk.gov.hmrc.mongo.json.ReactiveMongoFormats.dateTimeFormats
 
-case object JourneyId {
-  implicit val format = Json.format[JourneyId]
+  implicit val format = Json.format[IvSessionDataCore]
 }

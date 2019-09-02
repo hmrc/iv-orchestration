@@ -16,18 +16,19 @@
 
 package uk.gov.hmrc
 
-import org.joda.time.{DateTime, LocalDate}
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
-import uk.gov.hmrc.ivorchestration.model.{AuthRetrieval, AuthRetrievalCore}
+import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
+import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 
 package object ivorchestration {
 
   val sampleItmpAddress = ItmpAddress(Some("5 Street"),Some("Worthing"),Some("West Sussex"),None,None,Some("BN13 3AS"),Some("England"),Some("44"))
-  val sampleAuthRetrieval = AuthRetrieval(None, "777", Some("123455"),200,
+  val sampleIvSessionData = IvSessionData("777", Some("123455"),200,
     Some(DateTime.now),Some("123"),Some(sampleItmpAddress),Some("BN13 3AS"),Some("Matt"),Some("Groom"), Some(LocalDate.now))
 
-  val sampleAuthRetrievalCore = AuthRetrievalCore(sampleAuthRetrieval, new DateTime)
+  val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
 
-  val buildRetrievalCore: AuthRetrieval => AuthRetrievalCore = retrieval => AuthRetrievalCore(retrieval, new DateTime)
+  val buildIvSessionDataCore: IvSessionData => IvSessionDataCore = retrieval => IvSessionDataCore(retrieval, JourneyId("123"), new DateTime)
 
 }
