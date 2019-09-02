@@ -20,7 +20,6 @@ import java.util.UUID
 
 import cats.{ Monad, MonadError}
 import cats.syntax.functor._
-import cats.syntax.applicative._
 import cats.syntax.flatMap._
 import org.joda.time.DateTime
 import uk.gov.hmrc.http.HeaderCarrier
@@ -32,7 +31,7 @@ class AuthRetrievalRequestHandler[F[_]: Monad](authRetrievalAlgebra: AuthRetriev
   def handle(authRetrieval: AuthRetrieval, headers: Map[String, String])(implicit hc: HeaderCarrier, me: MonadError[F, Throwable]): F[String] =
     generateIdAndPersist(authRetrieval).map(core => buildUri(core.authRetrieval.journeyId, headers)) flatMap {
       case None => me.raiseError(new Exception("missing header"))
-      case Some(r) => r.pure[F]
+      case Some(r) => me.pure(r)
     }
 
   protected def generateIdAndPersist(authRetrieval: AuthRetrieval)(implicit hc: HeaderCarrier): F[AuthRetrievalCore] =
