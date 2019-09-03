@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration.model
+package uk.gov.hmrc.ivorchestration.testsuite
 
-import play.api.libs.json.{Format, Json}
+import org.scalatest.{MustMatchers, WordSpec}
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
-case class UnexpectedState(errorMsg: String) extends Exception
+trait BaseSpec extends WordSpec with MustMatchers {
 
-object UnexpectedState {
-  implicit val format: Format[UnexpectedState] = Json.format
+  def await[A](future: Future[A]): A = Await.result(future, 20 seconds)
 }

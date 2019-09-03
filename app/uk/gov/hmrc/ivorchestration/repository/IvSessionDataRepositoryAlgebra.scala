@@ -22,7 +22,7 @@ import reactivemongo.bson.{BSONDocument, BSONInteger, BSONObjectID}
 import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
 import uk.gov.hmrc.ivorchestration.model.api.IvSessionData._
-import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.model.UnexpectedState
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
@@ -34,7 +34,7 @@ import scala.concurrent.Future
 trait IvSessionDataRepositoryAlgebra[F[_]] {
   def insertIvSessionData(authRetrievalCore: IvSessionDataCore): F[IvSessionDataCore]
   def retrieveAll(): F[List[IvSessionDataCore]]
-  def findByKey(journeyId: JourneyId, credId: String): F[Option[IvSessionDataCore]]
+  def findByKey(journeyId: JourneyId, credId: CredId): F[Option[IvSessionDataCore]]
 }
 
 class IvSessionDataRepository(mongoComponent: DBConnector)
@@ -66,7 +66,7 @@ class IvSessionDataRepository(mongoComponent: DBConnector)
 
   override def retrieveAll(): Future[List[IvSessionDataCore]] = findAll()
 
-  override def findByKey(journeyId: JourneyId, credId: String): Future[Option[IvSessionDataCore]] = {
+  override def findByKey(journeyId: JourneyId, credId: CredId): Future[Option[IvSessionDataCore]] = {
     val query = dbKey(journeyId, credId)
     find(query: _*).map(_.headOption)
   }

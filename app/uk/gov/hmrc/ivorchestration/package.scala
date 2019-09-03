@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration.model
+package uk.gov.hmrc
 
-import play.api.libs.json.{Format, Json}
+import cats.MonadError
+import uk.gov.hmrc.ivorchestration.model.UnexpectedState
 
-case class UnexpectedState(errorMsg: String) extends Exception
+package object ivorchestration {
+  type AppMonadError[F[_]] = MonadError[F, UnexpectedState]
 
-object UnexpectedState {
-  implicit val format: Format[UnexpectedState] = Json.format
 }

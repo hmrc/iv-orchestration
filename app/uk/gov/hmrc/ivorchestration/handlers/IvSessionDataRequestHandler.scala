@@ -18,30 +18,36 @@ package uk.gov.hmrc.ivorchestration.handlers
 
 import java.util.UUID
 
-import cats.{Monad, MonadError}
-import cats.syntax.functor._
 import cats.syntax.flatMap._
+import cats.syntax.functor._
 import org.joda.time.DateTime
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
+import uk.gov.hmrc.ivorchestration.AppMonadError
+import uk.gov.hmrc.ivorchestration.model.UnexpectedState
+import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
-class IvSessionDataRequestHandler[F[_]: Monad](authRetrievalAlgebra: IvSessionDataRepositoryAlgebra[F]) {
+class IvSessionDataRequestHandler[F[_]](ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra[F])(implicit monadError: AppMonadError[F]) {
 
-  def handle(authRetrieval: IvSessionData, headers: Map[String, String])(implicit hc: HeaderCarrier, me: MonadError[F, Throwable]): F[String] =
-    generateIdAndPersist(authRetrieval).map(core => buildUri(core.journeyId, headers)) flatMap {
-      case None => me.raiseError(new Exception("missing header"))
-      case Some(r) => me.pure(r)
+  def handleCreate(ivSessionData: IvSessionData): F[String] =
+    generateIdAndPersist(ivSessionData).map(core => buildUri(core.journeyId))
+
+  def handleSearch(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataSearchResponse] =
+    ivSessionDataAlgebra.findByKey(ivSessionDataSearch.journeyId, ivSessionDataSearch.credId).flatMap {
+      case None => monadError.raiseError(UnexpectedState("Record not found"))
+      case Some(r) => monadError.pure(IvSessionDataSearchResponse.fromIvSessionDataCore(r))
     }
 
-  protected def generateIdAndPersist(authRetrieval: IvSessionData)(implicit hc: HeaderCarrier): F[IvSessionDataCore] =
-    persist(IvSessionDataCore(authRetrieval, JourneyId(UUID.randomUUID().toString), new DateTime))
+  protected def generateIdAndPersist(ivSessionData: IvSessionData): F[IvSessionDataCore] =
+    persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), new DateTime))
 
-  protected def persist(authRetrievalCore: IvSessionDataCore)(implicit hc: HeaderCarrier): F[IvSessionDataCore] =
-    authRetrievalAlgebra.insertIvSessionData(authRetrievalCore)
+  protected def persist(ivSessionDataCore: IvSessionDataCore): F[IvSessionDataCore] =
+    ivSessionDataAlgebra.insertIvSessionData(ivSessionDataCore)
 
-  protected def buildUri(journeyId: JourneyId, headers: Map[String, String]): Option[String] =
-    headers.get("Raw-Request-URI").map(location => s"$location/${journeyId.value}" )
+  protected def buildUri(journeyId: JourneyId): String = s"${UriPrefix.uriPrefix}${journeyId.value}"
+}
+
+object UriPrefix {
+  val uriPrefix: String = "/iv-orchestration/iv-sessiondata/"
 }
 

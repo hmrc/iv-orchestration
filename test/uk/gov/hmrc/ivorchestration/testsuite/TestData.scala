@@ -14,21 +14,24 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc
+package uk.gov.hmrc.ivorchestration.testsuite
 
 import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
-import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
-import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
+import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 
-package object ivorchestration {
+trait TestData {
 
   val sampleItmpAddress = ItmpAddress(Some("5 Street"),Some("Worthing"),Some("West Sussex"),None,None,Some("BN13 3AS"),Some("England"),Some("44"))
-  val sampleIvSessionData = IvSessionData("777", Some("123455"),200,
+  val sampleIvSessionData = IvSessionData(CredId("777"), Some("123455"),200,
     Some(DateTime.now),Some("123"),Some(sampleItmpAddress),Some("BN13 3AS"),Some("Matt"),Some("Groom"), Some(LocalDate.now))
 
   val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
 
   val buildIvSessionDataCore: IvSessionData => IvSessionDataCore = retrieval => IvSessionDataCore(retrieval, JourneyId("123"), new DateTime)
 
+  val sampleSearchSessionDataRequest = IvSessionDataSearchRequest(JourneyId("123"), CredId("456"))
+
+  val sampleSearchSessionDataResponse = IvSessionDataSearchResponse.fromIvSessionDataCore(sampleIvSessionDataCore)
 }

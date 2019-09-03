@@ -18,18 +18,20 @@ package uk.gov.hmrc.ivorchestration.controllers
 
 import cats.instances.future._
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.JsValue
-import play.api.mvc.{Action, ControllerComponents}
+import play.api.libs.json.{JsValue, Json}
+import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthorisedFunctions, NoActiveSession}
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
-import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
+import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import com.olegpy.meow.hierarchy._
+import uk.gov.hmrc.ivorchestration.model.UnexpectedState
 
 @Singleton()
 class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
@@ -37,16 +39,37 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
 
   val requestsHandler = new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(dbConnector))
 
-  def ivSessionData(): Action[JsValue] = Action.async(parse.json) {
+  def ivSessionData(): Action[JsValue] = controllerAction(parse.json) {
     implicit request =>
-      withJsonBody[IvSessionData] {
-        ivSessionData =>
-          authorised() {
-            requestsHandler.handle(ivSessionData, request.headers.toSimpleMap).map(loc => Created.withHeaders("Location" -> loc))
-          }.recoverWith {
-            case _: NoActiveSession => Future.successful(Unauthorized)
-            case _                  => Future.successful(InternalServerError)
-          }
+      withJsonBody[IvSessionData] { ivSessionData =>
+          requestsHandler.handleCreate(ivSessionData)
+            .map(loc => Created.withHeaders("Location" -> loc))
       }
   }
+
+  def searchIvSessionData(): Action[JsValue] = controllerAction(parse.json) {
+    implicit request =>
+      withJsonBody[IvSessionDataSearchRequest] { ivSessionDataSearch =>
+        requestsHandler.handleSearch(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData)) } recover {
+          case err: UnexpectedState => NotFound(Json.toJson(err))
+          case _ => NotFound
+        }
+      }
+  }
+
+  protected def controllerAction[A](bodyParser: BodyParser[A])(block: Request[A] => Future[Result]): Action[A] =
+    Action.async(bodyParser) {
+      implicit request =>
+        withErrorHandling {
+          authorised() {
+            block(request)
+          }
+        }
+    }
+
+  private def withErrorHandling(f: => Future[Result]): Future[Result] =
+    f.recover {
+      case _: NoActiveSession => Unauthorized
+      case _                  => InternalServerError
+    }
 }

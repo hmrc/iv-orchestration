@@ -31,31 +31,44 @@ import uk.gov.hmrc.auth.core.authorise.EmptyPredicate
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
+import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
 import uk.gov.hmrc.ivorchestration.model.UnexpectedState
+import uk.gov.hmrc.ivorchestration.model.api.{IvSessionDataSearchRequest, IvSessionDataSearchResponse}
+import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
-import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
+import com.olegpy.meow.hierarchy._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoDBClient with BeforeAndAfterEach with MockFactory {
+class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoDBClient with BeforeAndAfterEach with MockFactory with TestData {
   implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
+    val result = stubAuthoriseController().ivSessionData()(FakeRequest("POST", "/iv-sessiondata/")
+      .withBody(Json.toJson(sampleIvSessionData)))
+
+    header("Location", result).get must include("/iv-orchestration/iv-sessiondata/")
+    status(result) mustBe CREATED
+  }
+
+  "returns a 200 with session data response for a given existing journeyId & credId" in {
     val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
       override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
         override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = body
       }
     }
-    
-    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata/")
-      .withBody(Json.toJson(sampleIvSessionData)).withHeaders("Raw-Request-URI" -> "/iv-orchestration/iv-sessiondata/"))
 
-    header("Location", result).get must include("/iv-orchestration/iv-sessiondata/")
-    status(result) mustBe CREATED
+    val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
+
+    val result = controller.searchIvSessionData()(FakeRequest("POST", "/iv-orchestration/session/search/")
+      .withBody(Json.toJson(IvSessionDataSearchRequest(core.journeyId, core.ivSessionData.credId))))
+
+    status(result) mustBe OK
+    contentAsJson(result) mustBe Json.toJson(IvSessionDataSearchResponse.fromIvSessionDataCore(core))
   }
 
   "returns a 401 UNAUTHORIZED if not authorised" in {
@@ -72,6 +85,8 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 500 for unexpected error" in {
+    val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
+
     val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
       override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
@@ -79,13 +94,14 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       }
     }
 
-    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(Json.toJson(sampleIvSessionData)))
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
+      .withBody(Json.toJson(IvSessionDataSearchRequest(core.journeyId, core.ivSessionData.credId))))
 
     status(result) mustBe INTERNAL_SERVER_ERROR
   }
 
   "returns a 400 BAD_REQUEST for an invalid AuthRetrieval request" in {
-    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
+    val result = stubAuthoriseController.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
       .withBody(Json.parse("""{ "k": "v"}"""))
         .withHeaders("Content-Type" -> "application/json")
     )
@@ -94,13 +110,17 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     contentAsString(result) must include("Invalid IvSessionData payload")
   }
 
+  "returns a 404 NOT_FOUND if not found in mongo" in {
+    val result = stubAuthoriseController().searchIvSessionData()(FakeRequest("POST", "/iv-orchestration/session/search/")
+      .withBody(Json.toJson(IvSessionDataSearchRequest(JourneyId("123"), CredId("456")))))
+
+    status(result) mustBe NOT_FOUND
+    contentAsJson(result) mustBe Json.toJson(UnexpectedState("Record not found"))
+  }
+
   private val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
   private val handler = new IvSessionDataRequestHandler[Future](service)
   private val authConnector = mock[AuthConnector]
-
-  private val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
-    override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
-  }
 
   private def injector: Injector = app.injector
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
@@ -108,4 +128,11 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
   override def beforeEach(): Unit = await(service.removeAll())
   override def afterEach(): Unit = await(service.removeAll())
+
+  def stubAuthoriseController(): IvSessionDataController = new IvSessionDataController(authConnector, stubControllerComponents()) {
+    override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
+    override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+      override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = body
+    }
+  }
 }

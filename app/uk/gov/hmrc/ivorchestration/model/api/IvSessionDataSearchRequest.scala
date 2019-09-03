@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration
+package uk.gov.hmrc.ivorchestration.model.api
 
-import org.scalatest.{MustMatchers, WordSpec}
+import play.api.libs.json.{Format, Json}
+import uk.gov.hmrc.ivorchestration.model.core.{CredId, JourneyId}
 
-import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+case class IvSessionDataSearchRequest(journeyId: JourneyId, credId: CredId)
 
-trait BaseSpec extends WordSpec with MustMatchers {
-
-  def await[A](future: Future[A]): A = Await.result(future, 20 seconds)
+object IvSessionDataSearchRequest {
+  implicit val format: Format[IvSessionDataSearchRequest] = Json.format
 }

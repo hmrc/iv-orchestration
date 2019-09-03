@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration.model
+package uk.gov.hmrc.ivorchestration.model.core
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsResult, JsString, JsValue}
 
-case class UnexpectedState(errorMsg: String) extends Exception
+case class CredId(value: String)
 
-object UnexpectedState {
-  implicit val format: Format[UnexpectedState] = Json.format
+object CredId {
+  implicit val format = new Format[CredId] {
+    override def reads(json: JsValue): JsResult[CredId] = json.validate[String].map(CredId(_))
+
+    override def writes(o: CredId): JsValue = JsString(o.value)
+  }
 }

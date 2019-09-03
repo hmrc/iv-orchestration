@@ -22,14 +22,14 @@ import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.api.commands.WriteResult
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.model.UnexpectedState
-import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
-import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
+import uk.gov.hmrc.ivorchestration.testsuite._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with BeforeAndAfterEach with ScalaFutures {
+class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with BeforeAndAfterEach with ScalaFutures with TestData {
 
   val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
 
@@ -46,7 +46,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
 
   "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
     val eventualData: Future[Option[IvSessionDataCore]] = for {
-      persisted    <- service.insertIvSessionData(sampleIvSessionDataCore.modify(_.ivSessionData.credId).setTo("123").copy(journeyId = JourneyId("111")))
+      persisted    <- service.insertIvSessionData(sampleIvSessionDataCore.modify(_.ivSessionData.credId).setTo(CredId("123")).copy(journeyId = JourneyId("111")))
       _            <- service.insertIvSessionData(persisted.modify(_.journeyId).setTo(JourneyId("333")))
       data         <- service.findByKey(persisted.journeyId, persisted.ivSessionData.credId)
     } yield data
@@ -62,7 +62,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
   }
 
   "returns a Future failure with duplicate DB exception when adding with same key" in {
-    val duplicatedEntry = sampleIvSessionDataCore.copy(journeyId = JourneyId("111")).modify(_.ivSessionData.credId).setTo("123")
+    val duplicatedEntry = sampleIvSessionDataCore.copy(journeyId = JourneyId("111")).modify(_.ivSessionData.credId).setTo(CredId("123"))
 
     await(service.insertIvSessionData(duplicatedEntry))
 
