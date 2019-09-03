@@ -20,7 +20,6 @@ import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson.{BSONDocument, BSONInteger, BSONObjectID}
 import reactivemongo.core.errors.DatabaseException
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
 import uk.gov.hmrc.ivorchestration.model.api.IvSessionData._
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
@@ -38,7 +37,7 @@ trait IvSessionDataRepositoryAlgebra[F[_]] {
   def findByKey(journeyId: JourneyId, credId: String): F[Option[IvSessionDataCore]]
 }
 
-class IvSessionDataRepositoryDBService(mongoComponent: DBConnector)
+class IvSessionDataRepository(mongoComponent: DBConnector)
   extends ReactiveRepository[IvSessionDataCore, BSONObjectID]("iv-session-data", mongoComponent.mongoConnector.db, IvSessionDataCore.format)
     with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
 

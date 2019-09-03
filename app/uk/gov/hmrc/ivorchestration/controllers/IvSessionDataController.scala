@@ -25,7 +25,7 @@ import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
 import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
-import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryDBService
+import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -35,7 +35,7 @@ import scala.concurrent.Future
 class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
   extends BackendController(cc) with MongoDBClient with AuthorisedFunctions {
 
-  val requestsHandler = new IvSessionDataRequestHandler[Future](new IvSessionDataRepositoryDBService(dbConnector))
+  val requestsHandler = new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(dbConnector))
 
   def ivSessionData(): Action[JsValue] = Action.async(parse.json) {
     implicit request =>

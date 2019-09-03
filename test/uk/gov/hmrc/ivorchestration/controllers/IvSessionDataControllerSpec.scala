@@ -34,7 +34,7 @@ import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
 import uk.gov.hmrc.ivorchestration.model.UnexpectedState
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
-import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryDBService
+import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -94,7 +94,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     contentAsString(result) must include("Invalid IvSessionData payload")
   }
 
-  private val service = new IvSessionDataRepositoryDBService(ReactiveMongoConnector(mongoConnector))
+  private val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
   private val handler = new IvSessionDataRequestHandler[Future](service)
   private val authConnector = mock[AuthConnector]
 

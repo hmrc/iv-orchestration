@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with BeforeAndAfterEach with ScalaFutures {
 
-  val service = new IvSessionDataRepositoryDBService(ReactiveMongoConnector(mongoConnector))
+  val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
 
   "can Add and retrieve AuthRetrieval entity" in {
     val eventualData: Future[List[IvSessionDataCore]] = for {
@@ -72,7 +72,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
   }
 
   "Returns a Future failed with UnexpectedState for any DB exception" in {
-    val stubFailingService = new IvSessionDataRepositoryDBService(ReactiveMongoConnector(mongoConnector)) {
+    val stubFailingService = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector)) {
       override def insert(entity: IvSessionDataCore)(implicit ec: ExecutionContext): Future[WriteResult] =
         Future.failed(new Exception("BOOM!"))
     }
