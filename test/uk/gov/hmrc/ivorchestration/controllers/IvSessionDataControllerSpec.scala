@@ -26,49 +26,62 @@ import play.api.inject.Injector
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
+import uk.gov.hmrc.auth.core.SessionRecordNotFound
 import uk.gov.hmrc.auth.core.authorise.EmptyPredicate
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
-import uk.gov.hmrc.ivorchestration.handlers.AuthRetrievalRequestHandler
-import uk.gov.hmrc.ivorchestration.model.{JourneyId, UnexpectedState}
+import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
+import uk.gov.hmrc.ivorchestration.model.UnexpectedState
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
-import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
+import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.ivorchestration.{BaseSpec, _}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoDBClient with BeforeAndAfterEach with MockFactory {
+class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoDBClient with BeforeAndAfterEach with MockFactory {
   implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
-    val controller = new AuthRetrievalController(authConnector, stubControllerComponents()) {
-      override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
+    val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
+      override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
       override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
         override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = body
       }
     }
     
-    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
-      .withBody(sampleAuthRetrieval).withHeaders("Raw-Request-URI" -> "iv-sessiondata"))
-    val actual = contentAsString(result)
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata/")
+      .withBody(Json.toJson(sampleIvSessionData)).withHeaders("Raw-Request-URI" -> "/iv-orchestration/iv-sessiondata/"))
 
+    header("Location", result).get must include("/iv-orchestration/iv-sessiondata/")
     status(result) mustBe CREATED
-    actual must include("iv-sessiondata/")
   }
 
   "returns a 401 UNAUTHORIZED if not authorised" in {
-    val controller = new AuthRetrievalController(authConnector, stubControllerComponents()) {
-      override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
+    val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
+      override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
+      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(SessionRecordNotFound("wrong"))
+      }
+    }
+
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(Json.toJson(sampleIvSessionData)))
+
+    status(result) mustBe UNAUTHORIZED
+  }
+
+  "returns a 500 for unexpected error" in {
+    val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
+      override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
       override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
         override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(UnexpectedState("wrong"))
       }
     }
 
-    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(sampleAuthRetrieval))
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(Json.toJson(sampleIvSessionData)))
 
-    status(result) mustBe UNAUTHORIZED
+    status(result) mustBe INTERNAL_SERVER_ERROR
   }
 
   "returns a 400 BAD_REQUEST for an invalid AuthRetrieval request" in {
@@ -76,15 +89,17 @@ class AuthRetrievalControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       .withBody(Json.parse("""{ "k": "v"}"""))
         .withHeaders("Content-Type" -> "application/json")
     )
+
     status(result) mustBe BAD_REQUEST
+    contentAsString(result) must include("Invalid IvSessionData payload")
   }
 
-  private val service = new AuthRetrievalDBService(ReactiveMongoConnector(mongoConnector))
-  private val handler = new AuthRetrievalRequestHandler[Future](service)
+  private val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
+  private val handler = new IvSessionDataRequestHandler[Future](service)
   private val authConnector = mock[AuthConnector]
 
-  private val controller = new AuthRetrievalController(authConnector, stubControllerComponents()) {
-    override val requestsHandler: AuthRetrievalRequestHandler[Future] = handler
+  private val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
+    override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
   }
 
   private def injector: Injector = app.injector

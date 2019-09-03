@@ -19,7 +19,6 @@ package uk.gov.hmrc.ivorchestration.config
 import reactivemongo.api.collections.bson.BSONCollection
 import reactivemongo.api.{DefaultDB, FailoverStrategy}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
-import uk.gov.hmrc.ivorchestration.services.AuthRetrievalDBService
 import uk.gov.hmrc.mongo.MongoConnector
 
 trait MongoDBClient extends MongoConfiguration {

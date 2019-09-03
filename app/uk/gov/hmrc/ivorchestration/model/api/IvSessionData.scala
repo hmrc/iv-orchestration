@@ -14,29 +14,15 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration.model
+package uk.gov.hmrc.ivorchestration.model.api
 
 import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
+import uk.gov.hmrc.ivorchestration.model.core.JourneyId
 
-object AuthRetrieval {
-
-  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
-
-  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](JodaReads.jodaLocalDateReads("yyyy-MM-dd"), JodaWrites.jodaLocalDateWrites("yyyy-MM-dd"))
-
-  implicit val itmpAddressFormat: Format[ItmpAddress] = Json.format[ItmpAddress]
-
-  implicit val format = Json.format[AuthRetrieval]
-
-  val dbKey: (String, String) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq("authRetrieval.journeyId" -> JsString(journeyId), "authRetrieval.credId" -> JsString(credId))
-}
-
-case class AuthRetrieval(
-                          journeyId: Option[String],
+case class IvSessionData(
                           credId: String,
                           nino: Option[String],
                           confidenceLevel: Int,
@@ -49,12 +35,16 @@ case class AuthRetrieval(
                           dateOfbirth: Option[LocalDate]
                         )
 
-case class AuthRetrievalCore(authRetrieval: AuthRetrieval, createdAt: DateTime)
+object IvSessionData {
 
-object AuthRetrievalCore {
-  import uk.gov.hmrc.mongo.json.ReactiveMongoFormats.dateTimeFormats
+  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
 
-  implicit val format = Json.format[AuthRetrievalCore]
+  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](JodaReads.jodaLocalDateReads("yyyy-MM-dd"), JodaWrites.jodaLocalDateWrites("yyyy-MM-dd"))
+
+  implicit val itmpAddressFormat: Format[ItmpAddress] = Json.format[ItmpAddress]
+
+  implicit val format = Json.format[IvSessionData]
+
+  val dbKey: (JourneyId, String) => Seq[(String, JsValueWrapper)] =
+    (journeyId, credId) => Seq("journeyId" -> Json.toJson(journeyId), "ivSessionData.credId" -> JsString(credId))
 }
-
-
