@@ -22,19 +22,19 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import org.joda.time.DateTime
 import uk.gov.hmrc.ivorchestration.AppMonadError
-import uk.gov.hmrc.ivorchestration.model.UnexpectedState
+import uk.gov.hmrc.ivorchestration.model.RecordNotFound
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
 class IvSessionDataRequestHandler[F[_]](ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra[F])(implicit monadError: AppMonadError[F]) {
 
-  def handleCreate(ivSessionData: IvSessionData): F[String] =
+  def create(ivSessionData: IvSessionData): F[String] =
     generateIdAndPersist(ivSessionData).map(core => buildUri(core.journeyId))
 
-  def handleSearch(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataSearchResponse] =
+  def search(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataSearchResponse] =
     ivSessionDataAlgebra.findByKey(ivSessionDataSearch.journeyId, ivSessionDataSearch.credId).flatMap {
-      case None => monadError.raiseError(UnexpectedState("Record not found"))
+      case None => monadError.raiseError(RecordNotFound)
       case Some(r) => monadError.pure(IvSessionDataSearchResponse.fromIvSessionDataCore(r))
     }
 

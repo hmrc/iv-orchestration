@@ -19,7 +19,7 @@ package uk.gov.hmrc.ivorchestration.handlers
 import java.util.concurrent.atomic.AtomicBoolean
 
 import cats.{Id, MonadError}
-import uk.gov.hmrc.ivorchestration.model.UnexpectedState
+import uk.gov.hmrc.ivorchestration.model.BusinessError
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
@@ -28,11 +28,11 @@ class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
 
   "Given AuthRetrieval" should {
     "JourneyId is generated for iv-session-data" in new IvSessionDataRequestHandler[Id](algebra) {
-      handleCreate(sampleIvSessionData) must include(UriPrefix.uriPrefix)
+      create(sampleIvSessionData) must include(UriPrefix.uriPrefix)
     }
 
     "JourneyId is generated and appended to the returned uri" in new IvSessionDataRequestHandler[Id](algebra) {
-      buildUri(JourneyId("3456")) mustBe "/iv-orchestration/iv-sessiondata/3456"
+      buildUri(JourneyId("3456")) mustBe s"${UriPrefix.uriPrefix}3456"
     }
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new IvSessionDataRequestHandler[Id](algebra) {
@@ -56,9 +56,9 @@ class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
     }
   }
 
-  implicit val me = new MonadError[Id, UnexpectedState] {
-    override def raiseError[A](e: UnexpectedState): Id[A] = throw e
-    override def handleErrorWith[A](fa: Id[A])(f: UnexpectedState => Id[A]): Id[A] = ???
+  implicit val me = new MonadError[Id, BusinessError] {
+    override def raiseError[A](e: BusinessError): Id[A] = throw e
+    override def handleErrorWith[A](fa: Id[A])(f: BusinessError => Id[A]): Id[A] = ???
     override def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = f(fa)
     override def tailRecM[A, B](a: A)(f: A => Id[Either[A, B]]): Id[B] = ???
     override def pure[A](x: A): Id[A] = x

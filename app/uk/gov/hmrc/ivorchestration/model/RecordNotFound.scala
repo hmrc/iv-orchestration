@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.ivorchestration.model
 
-import play.api.libs.json.{Format, Json}
+sealed trait BusinessError extends Exception
 
-case class UnexpectedState(errorMsg: String) extends Exception
+case object RecordNotFound extends BusinessError
+case object DuplicatedRecord extends BusinessError
+case object DatabaseError extends BusinessError
 
-object UnexpectedState {
-  implicit val format: Format[UnexpectedState] = Json.format
-}
+

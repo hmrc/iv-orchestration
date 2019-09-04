@@ -20,8 +20,10 @@ import com.softwaremill.quicklens._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.api.commands.WriteResult
+import reactivemongo.bson.BSONDocument
+import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
-import uk.gov.hmrc.ivorchestration.model.UnexpectedState
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.testsuite._
@@ -61,23 +63,23 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
       .modify(_.ivSessionData.dateOfbirth).setTo(dateOfbirth)
   }
 
-  "returns a Future failure with duplicate DB exception when adding with same key" in {
+  "returns a failure with duplicate DB exception when adding with same key" in {
     val duplicatedEntry = sampleIvSessionDataCore.copy(journeyId = JourneyId("111")).modify(_.ivSessionData.credId).setTo(CredId("123"))
 
     await(service.insertIvSessionData(duplicatedEntry))
 
-    intercept[UnexpectedState] {
+    intercept[DuplicatedRecord.type] {
       await(service.insertIvSessionData(duplicatedEntry))
     }
   }
 
-  "Returns a Future failed with UnexpectedState for any DB exception" in {
+  "Returns a failure with DatabaseError for any DB exception" in {
     val stubFailingService = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector)) {
       override def insert(entity: IvSessionDataCore)(implicit ec: ExecutionContext): Future[WriteResult] =
         Future.failed(new Exception("BOOM!"))
     }
 
-    intercept[UnexpectedState] {
+    intercept[DatabaseError.type] {
       await(stubFailingService.insertIvSessionData(buildIvSessionDataCore(sampleIvSessionData)))
     }
   }

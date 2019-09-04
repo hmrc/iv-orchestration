@@ -17,9 +17,8 @@
 package uk.gov.hmrc
 
 import cats.MonadError
-import uk.gov.hmrc.ivorchestration.model.UnexpectedState
+import uk.gov.hmrc.ivorchestration.model.BusinessError
 
 package object ivorchestration {
-  type AppMonadError[F[_]] = MonadError[F, UnexpectedState]
-
+  type AppMonadError[F[_]] = MonadError[F, BusinessError]
 }

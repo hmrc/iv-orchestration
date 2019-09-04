@@ -31,7 +31,7 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.olegpy.meow.hierarchy._
-import uk.gov.hmrc.ivorchestration.model.UnexpectedState
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
 
 @Singleton()
 class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
@@ -42,7 +42,7 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
   def ivSessionData(): Action[JsValue] = controllerAction(parse.json) {
     implicit request =>
       withJsonBody[IvSessionData] { ivSessionData =>
-          requestsHandler.handleCreate(ivSessionData)
+          requestsHandler.create(ivSessionData)
             .map(loc => Created.withHeaders("Location" -> loc))
       }
   }
@@ -50,12 +50,10 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
   def searchIvSessionData(): Action[JsValue] = controllerAction(parse.json) {
     implicit request =>
       withJsonBody[IvSessionDataSearchRequest] { ivSessionDataSearch =>
-        requestsHandler.handleSearch(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData)) } recover {
-          case err: UnexpectedState => NotFound(Json.toJson(err))
-          case _ => NotFound
+        requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
         }
       }
-  }
+    }
 
   protected def controllerAction[A](bodyParser: BodyParser[A])(block: Request[A] => Future[Result]): Action[A] =
     Action.async(bodyParser) {
@@ -70,6 +68,8 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
   private def withErrorHandling(f: => Future[Result]): Future[Result] =
     f.recover {
       case _: NoActiveSession => Unauthorized
+      case RecordNotFound     => NotFound
+      case DatabaseError      => InternalServerError
       case _                  => InternalServerError
     }
 }

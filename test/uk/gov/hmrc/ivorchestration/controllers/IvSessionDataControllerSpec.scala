@@ -32,8 +32,8 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
-import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
-import uk.gov.hmrc.ivorchestration.model.UnexpectedState
+import uk.gov.hmrc.ivorchestration.handlers.{IvSessionDataRequestHandler, UriPrefix}
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
@@ -55,16 +55,9 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 200 with session data response for a given existing journeyId & credId" in {
-    val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
-      override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
-      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
-        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = body
-      }
-    }
-
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
-    val result = controller.searchIvSessionData()(FakeRequest("POST", "/iv-orchestration/session/search/")
+    val result = stubAuthoriseController().searchIvSessionData()(FakeRequest("POST", s"${UriPrefix.uriPrefix}search/")
       .withBody(Json.toJson(IvSessionDataSearchRequest(core.journeyId, core.ivSessionData.credId))))
 
     status(result) mustBe OK
@@ -90,7 +83,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
       override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
-        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(UnexpectedState("wrong"))
+        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(DatabaseError)
       }
     }
 
@@ -103,8 +96,8 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   "returns a 400 BAD_REQUEST for an invalid AuthRetrieval request" in {
     val result = stubAuthoriseController.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
       .withBody(Json.parse("""{ "k": "v"}"""))
-        .withHeaders("Content-Type" -> "application/json")
-    )
+        .withHeaders("Content-Type" -> "application/json"))
+
 
     status(result) mustBe BAD_REQUEST
     contentAsString(result) must include("Invalid IvSessionData payload")
@@ -115,7 +108,6 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       .withBody(Json.toJson(IvSessionDataSearchRequest(JourneyId("123"), CredId("456")))))
 
     status(result) mustBe NOT_FOUND
-    contentAsJson(result) mustBe Json.toJson(UnexpectedState("Record not found"))
   }
 
   private val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
