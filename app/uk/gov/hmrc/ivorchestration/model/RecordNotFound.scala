@@ -16,4 +16,10 @@
 
 package uk.gov.hmrc.ivorchestration.model
 
-case class UnexpectedState(errorMsg: String) extends Exception
+sealed trait BusinessError extends Exception
+
+case object RecordNotFound extends BusinessError
+case object DuplicatedRecord extends BusinessError
+case object DatabaseError extends BusinessError
+
+

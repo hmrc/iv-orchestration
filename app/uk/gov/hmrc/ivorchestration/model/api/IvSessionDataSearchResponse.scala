@@ -17,25 +17,28 @@
 package uk.gov.hmrc.ivorchestration.model.api
 
 import org.joda.time.{DateTime, LocalDate}
-import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
-import uk.gov.hmrc.ivorchestration.model.core.{CredId, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.core.IvSessionDataCore
 
-case class IvSessionData(
-                          credId: CredId,
-                          nino: Option[String],
-                          confidenceLevel: Int,
-                          loginTimes: Option[DateTime],
-                          credentialStrength: Option[String],
-                          itmpAddress: Option[ItmpAddress],
-                          postCode: Option[String],
-                          firstName: Option[String],
-                          lastName: Option[String],
-                          dateOfbirth: Option[LocalDate]
-                        )
+case class IvSessionDataSearchResponse(
+                           nino: Option[String],
+                           confidenceLevel: Int,
+                           loginTimes: Option[DateTime],
+                           credentialStrength: Option[String],
+                           itmpAddress: Option[ItmpAddress],
+                           postCode: Option[String],
+                           firstName: Option[String],
+                           lastName: Option[String],
+                           dateOfbirth: Option[LocalDate]
+                           )
 
-object IvSessionData {
+
+object IvSessionDataSearchResponse {
+  def fromIvSessionDataCore(ivSessionDataCore: IvSessionDataCore): IvSessionDataSearchResponse = {
+    import ivSessionDataCore.ivSessionData._
+    IvSessionDataSearchResponse(nino, confidenceLevel, loginTimes, credentialStrength, itmpAddress, postCode, firstName, lastName, dateOfbirth)
+  }
 
   implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
 
@@ -43,8 +46,5 @@ object IvSessionData {
 
   implicit val itmpAddressFormat: Format[ItmpAddress] = Json.format[ItmpAddress]
 
-  implicit val format = Json.format[IvSessionData]
-
-  val dbKey: (JourneyId, CredId) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq("journeyId" -> Json.toJson(journeyId), "ivSessionData.credId" -> Json.toJson(credId))
+  implicit val format = Json.format[IvSessionDataSearchResponse]
 }

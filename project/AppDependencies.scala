@@ -11,7 +11,8 @@ object AppDependencies {
     "com.typesafe.play"          %% "play-json-joda"           % "2.6.7",
     "com.github.pureconfig"      %% "pureconfig"               % "0.11.1",
     "org.typelevel"              %% "cats-core"                % "2.0.0-RC1",
-    "com.softwaremill.quicklens" %% "quicklens"             % "1.4.12"
+    "com.softwaremill.quicklens" %% "quicklens"                % "1.4.12",
+    "com.olegpy"                 %% "meow-mtl"                 % "0.3.0-M1"
   )
 
   val test = Seq(
