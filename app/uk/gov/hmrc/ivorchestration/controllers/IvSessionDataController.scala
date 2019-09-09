@@ -31,13 +31,19 @@ import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.olegpy.meow.hierarchy._
+import uk.gov.hmrc.auth.core
 import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
 
 @Singleton()
 class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
-  extends BackendController(cc) with MongoDBClient with AuthorisedFunctions {
+  extends BackendController(cc) {
 
-  val requestsHandler = new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(dbConnector))
+  val requestsHandler =
+    new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(new MongoDBClient {}.dbConnector))
+
+  val authorisedFunctions = new AuthorisedFunctions {
+    override def authConnector: core.AuthConnector = authConnector
+  }
 
   def ivSessionData(): Action[JsValue] = controllerAction(parse.json) {
     implicit request =>
@@ -59,7 +65,7 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
     Action.async(bodyParser) {
       implicit request =>
         withErrorHandling {
-          authorised() {
+          authorisedFunctions.authorised() {
             block(request)
           }
         }

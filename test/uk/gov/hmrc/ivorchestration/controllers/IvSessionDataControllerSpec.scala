@@ -18,6 +18,7 @@ package uk.gov.hmrc.ivorchestration.controllers
 
 import akka.stream.Materializer
 import cats.instances.future._
+import com.olegpy.meow.hierarchy._
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -26,19 +27,19 @@ import play.api.inject.Injector
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.auth.core.SessionRecordNotFound
-import uk.gov.hmrc.auth.core.authorise.EmptyPredicate
+import uk.gov.hmrc.auth.core.authorise.{EmptyPredicate, Predicate}
+import uk.gov.hmrc.auth.core.retrieve.Retrieval
+import uk.gov.hmrc.auth.core.{AuthorisedFunctions, SessionRecordNotFound}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
-import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
 import uk.gov.hmrc.ivorchestration.handlers.{IvSessionDataRequestHandler, UriPrefix}
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
+import uk.gov.hmrc.ivorchestration.model.DatabaseError
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
-import com.olegpy.meow.hierarchy._
+import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
@@ -47,6 +48,9 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[Any])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*,*,*,*)
+      .returning(Future.successful(()))
     val result = stubAuthoriseController().ivSessionData()(FakeRequest("POST", "/iv-sessiondata/")
       .withBody(Json.toJson(sampleIvSessionData)))
 
@@ -55,6 +59,9 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 200 with session data response for a given existing journeyId & credId" in {
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[Any])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*,*,*,*)
+      .returning(Future.successful(()))
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
     val result = stubAuthoriseController().searchIvSessionData()(FakeRequest("POST", s"${UriPrefix.uriPrefix}search/")
@@ -65,10 +72,13 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 401 UNAUTHORIZED if not authorised" in {
-    val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
+    val controller = new IvSessionDataController(mockAuthConnector, stubControllerComponents()) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
-      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
-        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(SessionRecordNotFound("wrong"))
+      override  val authorisedFunctions = new AuthorisedFunctions {
+        override def authConnector: AuthConnector = mockAuthConnector
+        override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+          override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(SessionRecordNotFound("wrong"))
+        }
       }
     }
 
@@ -80,10 +90,13 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   "returns a 500 for unexpected error" in {
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
-    val controller = new IvSessionDataController(authConnector, stubControllerComponents()) {
+    val controller = new IvSessionDataController(mockAuthConnector, stubControllerComponents()) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
-      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
-        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(DatabaseError)
+      override  val authorisedFunctions = new AuthorisedFunctions {
+        override def authConnector: AuthConnector = mockAuthConnector
+        override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+          override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(DatabaseError)
+        }
       }
     }
 
@@ -94,6 +107,9 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 400 BAD_REQUEST for an invalid AuthRetrieval request" in {
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[Any])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*,*,*,*)
+      .returning(Future.successful(()))
     val result = stubAuthoriseController.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
       .withBody(Json.parse("""{ "k": "v"}"""))
         .withHeaders("Content-Type" -> "application/json"))
@@ -104,6 +120,9 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 404 NOT_FOUND if not found in mongo" in {
+    (mockAuthConnector.authorise(_: Predicate, _: Retrieval[Any])(_: HeaderCarrier, _: ExecutionContext))
+      .expects(*,*,*,*)
+      .returning(Future.successful(()))
     val result = stubAuthoriseController().searchIvSessionData()(FakeRequest("POST", "/iv-orchestration/session/search/")
       .withBody(Json.toJson(IvSessionDataSearchRequest(JourneyId("123"), CredId("456")))))
 
@@ -112,7 +131,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
   private val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
   private val handler = new IvSessionDataRequestHandler[Future](service)
-  private val authConnector = mock[AuthConnector]
+  private val mockAuthConnector = mock[AuthConnector]
 
   private def injector: Injector = app.injector
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
@@ -121,10 +140,10 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   override def beforeEach(): Unit = await(service.removeAll())
   override def afterEach(): Unit = await(service.removeAll())
 
-  def stubAuthoriseController(): IvSessionDataController = new IvSessionDataController(authConnector, stubControllerComponents()) {
+  def stubAuthoriseController(): IvSessionDataController = new IvSessionDataController(mockAuthConnector, stubControllerComponents()) {
     override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
-    override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
-      override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = body
+    override  val authorisedFunctions = new AuthorisedFunctions {
+      override def authConnector: AuthConnector = mockAuthConnector
     }
   }
 }
