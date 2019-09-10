@@ -17,6 +17,7 @@
 package uk.gov.hmrc.ivorchestration.controllers
 
 import cats.instances.future._
+import com.olegpy.meow.hierarchy._
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
@@ -25,19 +26,19 @@ import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-import com.olegpy.meow.hierarchy._
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
 
 @Singleton()
 class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
-  extends BackendController(cc) with MongoDBClient with AuthorisedFunctions {
+  extends BackendController(cc) with AuthorisedFunctions {
 
-  val requestsHandler = new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(dbConnector))
+  val requestsHandler =
+    new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(new MongoDBClient {}.dbConnector))
 
   def ivSessionData(): Action[JsValue] = controllerAction(parse.json) {
     implicit request =>
