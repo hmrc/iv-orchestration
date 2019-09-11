@@ -36,14 +36,10 @@ import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
 
 @Singleton()
 class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
-  extends BackendController(cc) {
+  extends BackendController(cc) with AuthorisedFunctions with MongoDBClient {
 
   val requestsHandler =
-    new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(new MongoDBClient {}.dbConnector))
-
-  val authorisedFunctions = new AuthorisedFunctions {
-    override def authConnector: core.AuthConnector = authConnector
-  }
+    new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(dbConnector))
 
   def ivSessionData(): Action[JsValue] = controllerAction(parse.json) {
     implicit request =>
@@ -65,7 +61,7 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
     Action.async(bodyParser) {
       implicit request =>
         withErrorHandling {
-          authorisedFunctions.authorised() {
+          authorised() {
             block(request)
           }
         }
