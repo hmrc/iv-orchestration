@@ -25,7 +25,7 @@ trait MongoDBClient extends MongoConfiguration {
 
   import mongoConfig._
 
-  protected val mongoDBUri: String = s"$uri&rm.monitorRefreshMS=$monitorRefresh&rm.failover=$failover"
+  protected val mongoDBUri: String = s"$uri?rm.monitorRefreshMS=$monitorRefresh&rm.failover=$failover"
 
   implicit lazy val mongoConnector: MongoConnector = MongoConnector(mongoDBUri)
   implicit val mongo: () => DefaultDB = mongoConnector.db
