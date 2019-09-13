@@ -1,6 +1,7 @@
 
 # iv-orchestration
 
+This service checks if users are authorised and allowed to create and retrieve session data.
 To run the application locally on port 9276 - endpoints are documented below.
 
 sbt run
@@ -9,9 +10,8 @@ sbt run
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
 
-# api endpoints
+# Api endpoints
 
-## API Endpoints
 | URI                              | Http Method |Description                  |Request Body                                                           | Response Body                                                             | Statuses       |
 |:---------------------------------|:------------|:----------------------------|:----------------------------------------------------------------------|---------------------------------------------------------------------------|----------------|
 |/iv-orchestration/iv-sessiondata  |POST         |Create a new session data    |[IvSessionData](#user-content-ivsessiondata)                           |                                                                           |201,401,500     |
