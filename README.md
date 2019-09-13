@@ -1,24 +1,21 @@
 
 # iv-orchestration
 
-This is a placeholder README.md for a new repository
+To run the application locally on port 9276 - endpoints are documented below.
+
+sbt run
 
 ### License
 
 This code is open source software licensed under the [Apache 2.0 License]("http://www.apache.org/licenses/LICENSE-2.0.html").
-
-
-To run the application locally, the following parameter is needed to allow for the generation of absolute urls.
-
-sbt run
 
 # api endpoints
 
 ## API Endpoints
 | URI                              | Http Method |Description                  |Request Body                                                           | Response Body                                                             | Statuses       |
 |:---------------------------------|:------------|:----------------------------|:----------------------------------------------------------------------|---------------------------------------------------------------------------|----------------|
-|/iv-orchestration/iv-sessiondata  |POST         |Create a new session data    |[IvSessionData](#user-content-ivsessiondata)                           |                                                                           |201,401,500
-|/iv-orchestration/session/search  |POST         |Return session data response |[IvSessionDataSearchRequest](#user-content-ivsessiondatasearchrequest) |[IvSessionDataSerchDataResponse](#user-content-ivsessiondatasearchresponse)|201,401,500
+|/iv-orchestration/iv-sessiondata  |POST         |Create a new session data    |[IvSessionData](#user-content-ivsessiondata)                           |                                                                           |201,401,500     |
+|/iv-orchestration/session/search  |POST         |Return session data response |[IvSessionDataSearchRequest](#user-content-ivsessiondatasearchrequest) |[IvSessionDataSerchDataResponse](#user-content-ivsessiondatasearchresponse)|201,401,500     |
 
 ## JSON
 
