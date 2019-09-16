@@ -1,0 +1,18 @@
+{
+  "type": "object",
+  "description": "Search the iv session data based on cred id and journey id",
+  "required": [
+    "credId",
+    "journeyId"
+  ],
+  "properties": {
+    "credId": {
+      "type": "string",
+      "description": "Cred id associated with the stored iv session data"
+    },
+    "journeyId": {
+      "type": "string",
+      "description": "The UUID journey id associated with the iv session data"
+    }
+  }
+}
