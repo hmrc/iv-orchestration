@@ -17,25 +17,15 @@
 package uk.gov.hmrc.ivorchestration.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
+import uk.gov.hmrc.ivorchestration.handlers.HeadersValidationHandler
 import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.util.matching.Regex
-import scala.util.matching.Regex.Match
 
 @Singleton
-class HeaderValidator @Inject()(cc: ControllerComponents) extends Results {
-
-  val validateVersion: String => Boolean = v => v == "1.0" || v == "2.0"
-
-  val validateContentType: String => Boolean = ct => ct == "json" || ct == "xml"
-
-  val matchHeader: String => Option[Match] = new Regex( """^application/vnd[.]{1}hmrc[.]{1}(.*?)[+]{1}(.*)$""", "version", "contenttype") findFirstMatchIn _
-
-  val acceptHeaderValidationRules: Option[String] => Boolean =
-    _ flatMap (a => matchHeader(a) map (res => validateContentType(res.group("contenttype")) && validateVersion(res.group("version")))) getOrElse false
+class HeaderValidator @Inject()(cc: ControllerComponents) extends Results with HeadersValidationHandler {
 
   def validateAction(rules: Option[String] => Boolean) = {
     new ActionBuilder[Request, AnyContent] with ActionFilter[Request] {
@@ -43,8 +33,7 @@ class HeaderValidator @Inject()(cc: ControllerComponents) extends Results {
       override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
       override protected val executionContext: ExecutionContext = cc.executionContext
 
-      def filter[T](input: Request[T]) = Future.successful {
-
+      def filter[T](input: Request[T]): Future[Option[Result]] = Future.successful {
         implicit val r = input
 
         if (!rules(input.headers.get("Accept")))
@@ -57,5 +46,4 @@ class HeaderValidator @Inject()(cc: ControllerComponents) extends Results {
   }
 
   val validateAcceptHeader: ActionBuilder[Request, AnyContent] = validateAction(acceptHeaderValidationRules)
-
 }
