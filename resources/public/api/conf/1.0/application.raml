@@ -40,9 +40,3 @@ uses:
             application/json:
               type: !include schemas/submit-search-session-data-response.json
               example: !include examples/search-session-response-example.json
-        401:
-          description: Returned if the user is unathorised
-        404:
-          description: Returned if the record cannot be found
-        500:
-          description: Returned if there was some unexpected error server side
