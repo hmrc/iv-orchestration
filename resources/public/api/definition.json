@@ -1,0 +1,21 @@
+{
+  "scopes": [
+    {
+      "key": "iv-orchestration",
+      "name": "iv-orchestration",
+      "description": "This service checks if users are authorised and allowed to retrieve session data"
+    }
+  ],
+  "api": {
+    "name": "iv-orchestration",
+    "description": "This service checks if users are authorised and allowed to retrieve session data",
+    "context": "iv-orchestration",
+    "versions": [
+      {
+        "version": "1.0",
+        "status": "STABLE",
+        "endpointsEnabled": true
+      }
+    ]
+  }
+}

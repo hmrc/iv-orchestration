@@ -30,4 +30,5 @@ object ErrorResponses {
   val notFound = ErrorResult("RECORD_NOT_FOUND", "The record could not be found")
   val unAuthorized = ErrorResult("UNAUTHORIZED", "User unauthorized")
   val badRequest = ErrorResult("BAD_REQUEST", "The provided body is invalid.")
+  val invalidHeaders = ErrorResult("ACCEPT_HEADER_INVALID", "The accept header is missing or invalid")
 }

@@ -35,7 +35,9 @@ import com.olegpy.meow.hierarchy._
 import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
 
 @Singleton()
-class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
+class IvSessionDataController @Inject()(val authConnector: AuthConnector,
+                                        headerValidator: HeaderValidator,
+                                        cc: ControllerComponents)
   extends BackendController(cc) with AuthorisedFunctions with MongoDBClient {
 
   val requestsHandler =
@@ -49,16 +51,18 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
       }
   }
 
-  def searchIvSessionData(): Action[JsValue] = controllerAction(parse.json) {
-    implicit request =>
-      request.body.asOpt[IvSessionDataSearchRequest] match {
-        case None => Future.successful(BadRequest(Json.toJson(badRequest)))
-        case Some(ivSessionDataSearch) =>
-          requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
 
-          }
+  def searchIvSessionData(): Action[JsValue] = headerValidator.validateAcceptHeader.async(parse.json)(implicit request =>
+    withErrorHandling {
+      authorised() {
+        request.body.asOpt[IvSessionDataSearchRequest] match {
+          case None => Future.successful(BadRequest(Json.toJson(badRequest)))
+          case Some(ivSessionDataSearch) =>
+            requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
+            }
+        }
       }
-    }
+    })
 
   protected def controllerAction[A](bodyParser: BodyParser[A])(block: Request[A] => Future[Result]): Action[A] =
     Action.async(bodyParser) {

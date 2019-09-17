@@ -1,0 +1,4 @@
+
+
+GET        /api/definition             uk.gov.hmrc.ivorchestration.controllers.DocumentationController.definition()
+GET        /api/conf/:version/*file    uk.gov.hmrc.ivorchestration.controllers.DocumentationController.raml(version, file)
