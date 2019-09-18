@@ -17,10 +17,8 @@
 package uk.gov.hmrc.ivorchestration.controllers
 
 import javax.inject.{Inject, Singleton}
-import play.api.libs.json.{JsValue, Json}
 import play.api.mvc._
 import uk.gov.hmrc.ivorchestration.handlers.HeadersValidationHandler
-import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -36,10 +34,7 @@ class HeaderValidator @Inject()(cc: ControllerComponents) extends Results with H
       def filter[T](input: Request[T]): Future[Option[Result]] = Future.successful {
         implicit val r = input
 
-        if (!rules(input.headers.get("Accept")))
-          Some(NotAcceptable(Json.toJson(ErrorResponses.invalidHeaders)))
-        else
-          None
+        validateRules(input.headers.toSimpleMap).map(NotAcceptable(_))
       }
 
     }

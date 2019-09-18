@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.handlers
 
+import play.api.libs.json.Json
 import uk.gov.hmrc.ivorchestration.testsuite.BaseSpec
 
 class HeadersValidationHandlerSpec extends BaseSpec {
@@ -40,5 +41,10 @@ class HeadersValidationHandlerSpec extends BaseSpec {
 
   "validation if rules succeed" in new HeadersValidationHandler {
     acceptHeaderValidationRules(Some("application/vnd.hmrc.1.0+json")) mustBe true
+  }
+
+  "validate rules" in new HeadersValidationHandler {
+    validateRules(Map("Accept" -> "")) mustBe Some(Json.parse("""{"code":"ACCEPT_HEADER_INVALID","message":"The accept header is missing or invalid"}"""))
+    validateRules(Map("Accept" -> "application/vnd.hmrc.1.0+json")) mustBe None
   }
 }

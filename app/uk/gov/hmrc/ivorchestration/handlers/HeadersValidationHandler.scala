@@ -16,6 +16,9 @@
 
 package uk.gov.hmrc.ivorchestration.handlers
 
+import play.api.libs.json.{JsValue, Json}
+import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses
+
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
@@ -30,4 +33,11 @@ trait HeadersValidationHandler {
 
   val acceptHeaderValidationRules: Option[String] => Boolean =
     _ flatMap (a => matchHeader(a) map (res => validateContentType(res.group("contenttype")) && validateVersion(res.group("version")))) getOrElse false
+
+  def validateRules(headers: Map[String, String]): Option[JsValue] =
+    if (!acceptHeaderValidationRules(headers.get("Accept")))
+      Some(Json.toJson(ErrorResponses.invalidHeaders))
+    else
+      None
+
 }
