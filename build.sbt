@@ -2,6 +2,8 @@ import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
+import sbt.Keys._
+import sbt._
 
 val appName = "iv-orchestration"
 
@@ -32,4 +34,5 @@ lazy val microservice = Project(appName, file("."))
   .settings(coverageMinimum := 85)
   .settings(coverageFailOnMinimum := true)
   .settings(coverageExcludedPackages := excludedPackages.mkString(";"))
+  .settings(unmanagedResourceDirectories in Compile += baseDirectory.value / "resources")
 

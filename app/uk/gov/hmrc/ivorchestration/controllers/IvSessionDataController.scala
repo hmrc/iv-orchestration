@@ -27,15 +27,17 @@ import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.olegpy.meow.hierarchy._
-import uk.gov.hmrc.auth.core
 import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
 
 @Singleton()
-class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: ControllerComponents)
+class IvSessionDataController @Inject()(val authConnector: AuthConnector,
+                                        headerValidator: HeaderValidator,
+                                        cc: ControllerComponents)
   extends BackendController(cc) with AuthorisedFunctions with MongoDBClient {
 
   val requestsHandler =
@@ -49,13 +51,18 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
       }
   }
 
-  def searchIvSessionData(): Action[JsValue] = controllerAction(parse.json) {
-    implicit request =>
-      withJsonBody[IvSessionDataSearchRequest] { ivSessionDataSearch =>
-        requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
+
+  def searchIvSessionData(): Action[JsValue] = headerValidator.validateAcceptHeader.async(parse.json)(implicit request =>
+    withErrorHandling {
+      authorised() {
+        request.body.asOpt[IvSessionDataSearchRequest] match {
+          case None => Future.successful(BadRequest(Json.toJson(badRequest)))
+          case Some(ivSessionDataSearch) =>
+            requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
+            }
         }
       }
-    }
+    })
 
   protected def controllerAction[A](bodyParser: BodyParser[A])(block: Request[A] => Future[Result]): Action[A] =
     Action.async(bodyParser) {
@@ -69,9 +76,9 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector, cc: Co
 
   private def withErrorHandling(f: => Future[Result]): Future[Result] =
     f.recover {
-      case _: NoActiveSession => Unauthorized
-      case RecordNotFound     => NotFound
-      case DatabaseError      => InternalServerError
-      case _                  => InternalServerError
+      case _: NoActiveSession => Unauthorized(Json.toJson(unAuthorized))
+      case RecordNotFound     => NotFound(Json.toJson(notFound))
+      case DatabaseError      => InternalServerError(Json.toJson(internalServerError))
+      case _                  => InternalServerError(Json.toJson(internalServerError))
     }
 }

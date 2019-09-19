@@ -1,0 +1,43 @@
+{
+  "type": "object",
+  "description": "The iv session data found for the given search",
+  "required": [
+    "confidenceLevel"
+  ],
+  "properties": {
+    "nino": {
+      "type": "string",
+      "description": "The NINO associated with the cred id"
+    },
+    "confidenceLevel": {
+      "type": "integer",
+      "description": "The confidence level associated to the cred id"
+    },
+    "loginTimes": {
+      "type": "string",
+      "format": "yyyy-MM-dd",
+      "description": "The date of the last time the user logged in"
+    },
+    "credentialStrength": {
+      "type": "string",
+      "description": "The credential strength associated to the cred id"
+    },
+    "postCode": {
+      "type": "string",
+      "description": "User's address"
+    },
+    "firstName": {
+      "type": "string",
+      "description": "The firstname of the user"
+    },
+    "lastName": {
+      "type": "string",
+      "description": "The lastname of the user"
+    },
+    "dateOfbirth": {
+      "type": "string",
+      "format": "yyyy-MM-dd",
+      "description": "User's birthday"
+    }
+  }
+}
