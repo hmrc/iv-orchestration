@@ -22,21 +22,24 @@ uses:
   annotations: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/annotations.raml
   types: https://developer.service.hmrc.gov.uk/api-documentation/assets/common/modules/types.raml
 
-/session:
-  /search:
-    post:
-      displayName: Search for iv session data
-      description: Given a credId and a journeyId, a search will be performed to retrieve the established iv session data.
-      is: [headers.acceptHeader, headers.contentHeader]
-      securedBy: [sec.x-application]
-      body:
-        application/json:
-          type: !include schemas/submit-search-session-data.json
-          example: !include examples/search-session-request-example.json
-      responses:
-        200:
-          description: Includes an IvSessionData record that was searched for
+/individuals
+  /iv-orchestration
+    /session:
+      /search:
+        post:
+          displayName: Search for iv session data
+          description: Given a credId and a journeyId, a search will be performed to retrieve the established iv session data.
+          is: [headers.acceptHeader, headers.contentHeader]
+          securedBy: [sec.x-application]
           body:
             application/json:
-              type: !include schemas/submit-search-session-data-response.json
-              example: !include examples/search-session-response-example.json
+              type: !include schemas/submit-search-session-data.json
+              example: !include examples/search-session-request-example.json
+          responses:
+            200:
+              description: Includes an IvSessionData record that was searched for
+            body:
+              application/json:
+
+                type: !include schemas/submit-search-session-data-response.json
+                example: !include examples/search-session-response-example.json
