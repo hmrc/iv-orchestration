@@ -9,7 +9,7 @@
   "api": {
     "name": "IV Orchestration",
     "description": "This service checks if users are authorised and allowed to retrieve session data",
-    "context": "individuals",
+    "context": "individuals/iv-orchestration",
     "versions": [
       {
         "version": "1.0",
