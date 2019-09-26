@@ -32,7 +32,7 @@ case class IvSessionData(
                           postCode: Option[String],
                           firstName: Option[String],
                           lastName: Option[String],
-                          dateOfbirth: Option[LocalDate]
+                          dateOfBirth: Option[LocalDate]
                         )
 
 object IvSessionData {

@@ -43,7 +43,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
 
     val actual = await[List[IvSessionDataCore]](eventualData).head.ivSessionData
 
-    actual mustBe sampleIvSessionData.copy(loginTimes = actual.loginTimes, dateOfbirth = actual.dateOfbirth)
+    actual mustBe sampleIvSessionData.copy(loginTimes = actual.loginTimes, dateOfBirth = actual.dateOfBirth)
   }
 
   "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
@@ -60,7 +60,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
       .modify(_.journeyId).setTo(actual.journeyId)
       .modify(_.ivSessionData.credId).setTo(credId)
       .modify(_.ivSessionData.loginTimes).setTo(loginTimes)
-      .modify(_.ivSessionData.dateOfbirth).setTo(dateOfbirth)
+      .modify(_.ivSessionData.dateOfBirth).setTo(dateOfBirth)
   }
 
   "returns a failure with duplicate DB exception when adding with same key" in {
