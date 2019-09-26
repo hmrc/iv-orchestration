@@ -37,7 +37,7 @@ case class IvSessionDataSearchResponse(
 object IvSessionDataSearchResponse {
   def fromIvSessionDataCore(ivSessionDataCore: IvSessionDataCore): IvSessionDataSearchResponse = {
     import ivSessionDataCore.ivSessionData._
-    IvSessionDataSearchResponse(nino, confidenceLevel, loginTimes, credentialStrength, itmpAddress, postCode, firstName, lastName, dateOfbirth)
+    IvSessionDataSearchResponse(nino, confidenceLevel, loginTimes, credentialStrength, itmpAddress, postCode, firstName, lastName, dateOfBirth)
   }
 
   implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
