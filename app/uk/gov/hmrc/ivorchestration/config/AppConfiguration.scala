@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.config
 
-trait AppConfiguration extends MongoConfiguration with AuthServiceConfiguration {
+trait AppConfiguration extends MongoConfiguration with AuthServiceConfiguration with ApiDocumentationConfiguration {
 
   import pureconfig.generic.auto._  //Do not remove this
 
@@ -36,7 +36,14 @@ trait AuthServiceConfiguration {
   lazy val authConf: AuthServiceConf = pureconfig.loadConfigOrThrow[AuthServiceConf]("microservice.services.auth")
 }
 
+trait ApiDocumentationConfiguration {
+  import pureconfig.generic.auto._
+
+  lazy val apiConf: DocumentationConf = pureconfig.loadConfigOrThrow[DocumentationConf]("api")
+}
 
 case class AuthServiceConf(protocol: String, host: String, port: Int)
 
 case class MongoConfig(uri: String, ttl: Int, monitorRefresh: Int, failover: String)
+
+case class DocumentationConf(access: String, context: String, whiteListedApplicationIds: Seq[String])

@@ -1,3 +1,7 @@
+@import uk.gov.hmrc.ivorchestration.config.DocumentationConf
+@import play.api.libs.json.Json
+
+@(conf: DocumentationConf)
 {
   "scopes": [
     {
@@ -9,13 +13,19 @@
   "api": {
     "name": "IV Orchestration",
     "description": "This service checks if users are authorised and allowed to retrieve session data",
-    "context": "individuals/iv-orchestration",
+    "context": "@conf.context",
     "versions": [
       {
         "version": "1.0",
         "status": "STABLE",
-        "endpointsEnabled": true
-      }
+        "endpointsEnabled": true,
+        "access": {
+              "type": "@conf.access",
+              "whitelistedApplicationIds": @Json.toJson(conf.whiteListedApplicationIds)
+             }
+        }
     ]
   }
 }
+
+
