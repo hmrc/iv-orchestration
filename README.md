@@ -29,17 +29,9 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
       "confidenceLevel": 200,
       "loginTimes": "2019-08-27",
       "credentialStrength": "123",
-      "itmpAddress": {
-        "line1": "5 Street",
-        "line2": "Worthing",
-        "line3": "West Sussex",
-        "postCode": "BN13 3AS",
-        "countryName": "England",
-        "countryCode": "44"
-      },
-      "postCode": "BN13 3AS",
-      "firstName": "Matt",
-      "lastName": "Groom",
+      "postCode": "AA12 3BB",
+      "firstName": "Jim",
+      "lastName": "Smith",
       "dateOfbirth": "2019-08-27"
     }
 ]
@@ -65,17 +57,9 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
       "confidenceLevel": 200,
       "loginTimes": "2019-09-12",
       "credentialStrength": "123",
-      "itmpAddress": {
-        "line1": "5 Street",
-        "line2": "Worthing",
-        "line3": "West Sussex",
-        "postCode": "BN13 3AS",
-        "countryName": "England",
-        "countryCode": "44"
-      },
-      "postCode": "BN13 3AS",
-      "firstName": "Matt",
-      "lastName": "Groom",
+      "postCode": "AB12 3BC",
+      "firstName": "Jim",
+      "lastName": "Smith",
       "dateOfbirth": "2019-09-12"
     }
 ]

@@ -19,7 +19,6 @@ package uk.gov.hmrc.ivorchestration.model.api
 import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
-import uk.gov.hmrc.auth.core.retrieve.ItmpAddress
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, JourneyId}
 
 case class IvSessionData(
@@ -28,7 +27,6 @@ case class IvSessionData(
                           confidenceLevel: Int,
                           loginTimes: Option[DateTime],
                           credentialStrength: Option[String],
-                          itmpAddress: Option[ItmpAddress],
                           postCode: Option[String],
                           firstName: Option[String],
                           lastName: Option[String],
@@ -40,8 +38,6 @@ object IvSessionData {
   implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
 
   implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](JodaReads.jodaLocalDateReads("yyyy-MM-dd"), JodaWrites.jodaLocalDateWrites("yyyy-MM-dd"))
-
-  implicit val itmpAddressFormat: Format[ItmpAddress] = Json.format[ItmpAddress]
 
   implicit val format = Json.format[IvSessionData]
 
