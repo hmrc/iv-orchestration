@@ -35,7 +35,7 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "provide raml documentation" in new Setup {
-    val result = documentationController.raml("1.0", "application.raml")(request)
+    val result = documentationController.conf("1.0", "application.raml")(request)
 
     status(result) mustBe OK
     contentAsString(result) must startWith("#%RAML 1.0")
@@ -43,7 +43,7 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
   trait Setup {
     implicit def materializer: akka.stream.Materializer = app.injector.instanceOf[akka.stream.Materializer]
-    val documentationController = app.injector.instanceOf[DocumentationController]
+    val documentationController = app.injector.instanceOf[IvOrchestrationDocumentationController]
     val request = FakeRequest()
   }
 }

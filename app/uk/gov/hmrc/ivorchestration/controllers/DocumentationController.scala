@@ -18,17 +18,20 @@ package uk.gov.hmrc.ivorchestration.controllers
 
 import controllers.Assets
 import javax.inject.{Inject, Singleton}
+import play.api.http.HttpErrorHandler
 import play.api.mvc.{Action, AnyContent, ControllerComponents}
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
+import uk.gov.hmrc.api.controllers.DocumentationController
+import uk.gov.hmrc.ivorchestration.config.ApiDocumentationConfiguration
 
 @Singleton
-class DocumentationController @Inject()(assets: Assets, cc: ControllerComponents) extends BackendController(cc) {
+class IvOrchestrationDocumentationController @Inject()(assets: Assets, cc: ControllerComponents, errorHandler: HttpErrorHandler)
+  extends DocumentationController(cc, assets, errorHandler) with ApiDocumentationConfiguration {
 
-  def definition(): Action[AnyContent] = {
-    assets.at("/public/api", "definition.json")
+  override def definition(): Action[AnyContent] = Action {
+    Ok(uk.gov.hmrc.ivorchestration.views.txt.definition(apiConf))
   }
 
-  def raml(version: String, file: String): Action[AnyContent] = {
+  override def conf(version: String, file: String): Action[AnyContent] = {
     assets.at(s"/public/api/conf/$version", file)
   }
 }
