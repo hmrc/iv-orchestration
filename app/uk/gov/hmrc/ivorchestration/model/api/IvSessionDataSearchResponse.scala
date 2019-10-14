@@ -21,14 +21,14 @@ import play.api.libs.json._
 import uk.gov.hmrc.ivorchestration.model.core.IvSessionDataCore
 
 case class IvSessionDataSearchResponse(
-                           nino: Option[String],
-                           confidenceLevel: Int,
-                           loginTimes: Option[DateTime],
-                           credentialStrength: Option[String],
-                           postCode: Option[String],
-                           firstName: Option[String],
-                           lastName: Option[String],
-                           dateOfbirth: Option[LocalDate]
+                                        nino: Option[String],
+                                        confidenceLevel: Int,
+                                        loginTimes: Option[DateTime],
+                                        credentialStrength: Option[String],
+                                        postCode: Option[String],
+                                        firstName: Option[String],
+                                        lastName: Option[String],
+                                        dateOfBirth: Option[LocalDate]
                            )
 
 
