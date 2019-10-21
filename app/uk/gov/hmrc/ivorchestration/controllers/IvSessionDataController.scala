@@ -54,11 +54,13 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector,
 
   def searchIvSessionData(): Action[JsValue] = headerValidator.validateAcceptHeader.async(parse.json)(implicit request =>
     withErrorHandling {
-      request.body.asOpt[IvSessionDataSearchRequest] match {
-        case None => Future.successful(BadRequest(Json.toJson(badRequest)))
-        case Some(ivSessionDataSearch) =>
-          requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
-          }
+      authorised() {
+        request.body.asOpt[IvSessionDataSearchRequest] match {
+          case None => Future.successful(BadRequest(Json.toJson(badRequest)))
+          case Some(ivSessionDataSearch) =>
+            requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
+            }
+        }
       }
     })
 
