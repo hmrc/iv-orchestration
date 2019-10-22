@@ -30,8 +30,8 @@ uses:
           displayName: Search for iv session data
           description: Given a credId and a journeyId, a search will be performed to retrieve the established iv session data.
           is: [headers.acceptHeader, headers.contentHeader]
-          (annotations.scope): "search"
-          securedBy: [ sec.oauth_2_0: { scopes: [ "search" ] } ]
+          (annotations.scope): "iv-orchestration"
+          securedBy: [ sec.oauth_2_0: { scopes: [ "iv-orchestration" ] } ]
           body:
             application/json:
               type: !include schemas/submit-search-session-data.json
