@@ -18,6 +18,7 @@ package uk.gov.hmrc.ivorchestration.model.api
 
 import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json._
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.ivorchestration.model.core.IvSessionDataCore
 
 case class IvSessionDataSearchResponse(
@@ -28,14 +29,15 @@ case class IvSessionDataSearchResponse(
                                         postCode: Option[String],
                                         firstName: Option[String],
                                         lastName: Option[String],
-                                        dateOfBirth: Option[LocalDate]
+                                        dateOfBirth: Option[LocalDate],
+                                        affinityGroup : AffinityGroup
                            )
 
 
 object IvSessionDataSearchResponse {
   def fromIvSessionDataCore(ivSessionDataCore: IvSessionDataCore): IvSessionDataSearchResponse = {
     import ivSessionDataCore.ivSessionData._
-    IvSessionDataSearchResponse(nino, confidenceLevel, loginTimes, credentialStrength, postCode, firstName, lastName, dateOfBirth)
+    IvSessionDataSearchResponse(nino, confidenceLevel, loginTimes, credentialStrength, postCode, firstName, lastName, dateOfBirth, affinityGroup )
   }
 
   implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))

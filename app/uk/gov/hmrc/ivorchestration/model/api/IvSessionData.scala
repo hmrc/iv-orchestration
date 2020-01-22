@@ -19,6 +19,7 @@ package uk.gov.hmrc.ivorchestration.model.api
 import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
+import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, JourneyId}
 
 case class IvSessionData(
@@ -30,7 +31,8 @@ case class IvSessionData(
                           postCode: Option[String],
                           firstName: Option[String],
                           lastName: Option[String],
-                          dateOfBirth: Option[LocalDate]
+                          dateOfBirth: Option[LocalDate],
+                          affinityGroup : AffinityGroup
                         )
 
 object IvSessionData {
