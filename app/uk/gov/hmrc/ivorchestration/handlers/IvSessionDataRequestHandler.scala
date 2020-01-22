@@ -18,16 +18,16 @@ package uk.gov.hmrc.ivorchestration.handlers
 
 import java.util.UUID
 
+import cats.MonadError
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import org.joda.time.DateTime
-import uk.gov.hmrc.ivorchestration.AppMonadError
-import uk.gov.hmrc.ivorchestration.model.RecordNotFound
+import uk.gov.hmrc.ivorchestration.model.{BusinessError, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
-class IvSessionDataRequestHandler[F[_]](ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra[F])(implicit monadError: AppMonadError[F]) {
+class IvSessionDataRequestHandler[F[_]](ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra[F])(implicit monadError: MonadError[F, BusinessError]) {
 
   def create(ivSessionData: IvSessionData): F[String] =
     generateIdAndPersist(ivSessionData).map(core => buildUri(core.journeyId))
