@@ -32,7 +32,8 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
       "postCode": "AA12 3BB",
       "firstName": "Jim",
       "lastName": "Smith",
-      "dateOfbirth": "2019-08-27"
+      "dateOfbirth": "2019-08-27",
+      "affinityGroup": "Individual"
     }
 ]
 ```
@@ -60,7 +61,8 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
       "postCode": "AB12 3BC",
       "firstName": "Jim",
       "lastName": "Smith",
-      "dateOfbirth": "2019-09-12"
+      "dateOfbirth": "2019-09-12",
+      "affinityGroup": "Individual"
     }
 ]
 ```
