@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class HeaderValidator @Inject()(cc: ControllerComponents) extends Results with HeadersValidationHandler {
 
-  def validateAction(rules: Option[String] => Boolean) = {
+  def validateAction(rules: Option[String] => Boolean): ActionBuilder[Request, AnyContent] with ActionFilter[Request] = {
     new ActionBuilder[Request, AnyContent] with ActionFilter[Request] {
 
       override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser

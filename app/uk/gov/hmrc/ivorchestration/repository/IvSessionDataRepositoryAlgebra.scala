@@ -23,7 +23,7 @@ import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
 import uk.gov.hmrc.ivorchestration.model.api.IvSessionData._
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord, RecordNotFound}
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord}
 import uk.gov.hmrc.ivorchestration.persistence.DBConnector
 import uk.gov.hmrc.mongo.ReactiveRepository
 
@@ -38,8 +38,10 @@ trait IvSessionDataRepositoryAlgebra[F[_]] {
 }
 
 class IvSessionDataRepository(mongoComponent: DBConnector)
-  extends ReactiveRepository[IvSessionDataCore, BSONObjectID]("iv-session-data", mongoComponent.mongoConnector.db, IvSessionDataCore.format)
-    with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
+  extends ReactiveRepository[IvSessionDataCore, BSONObjectID](
+    "iv-session-data", mongoComponent.mongoConnector.db, IvSessionDataCore.format
+  )
+  with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
 
   override def indexes: Seq[Index] = {
     Seq(

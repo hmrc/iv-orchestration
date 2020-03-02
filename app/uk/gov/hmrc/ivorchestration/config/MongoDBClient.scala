@@ -31,7 +31,8 @@ trait MongoDBClient extends MongoConfiguration {
   implicit val mongo: () => DefaultDB = mongoConnector.db
 
   def bsonCollection(name: String)(
-    failoverStrategy: FailoverStrategy = mongoConnector.helper.db.failoverStrategy): BSONCollection =
+    failoverStrategy: FailoverStrategy = mongoConnector.helper.db.failoverStrategy
+  ): BSONCollection =
     mongoConnector.helper.db(name, failoverStrategy)
 
 
