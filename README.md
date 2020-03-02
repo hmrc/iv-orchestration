@@ -19,6 +19,8 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
 
 ## JSON
 
+Note that `nino`, `loginTimes`, `credentialStrength`, `postCode`, `firstName`, `lastName`, `dateOfBirth` and `ivFailureReason` are optional fields.
+
 ### IvSessionData
 
 ```json
@@ -33,7 +35,8 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
       "firstName": "Jim",
       "lastName": "Smith",
       "dateOfbirth": "2019-08-27",
-      "affinityGroup": "Individual"
+      "affinityGroup": "Individual",
+      "ivFailureReason": "User failed IV"
     }
 ]
 ```
@@ -62,7 +65,8 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
       "firstName": "Jim",
       "lastName": "Smith",
       "dateOfbirth": "2019-09-12",
-      "affinityGroup": "Individual"
+      "affinityGroup": "Individual",
+      "ivFailureReason": "User failed IV"
     }
 ]
 ```

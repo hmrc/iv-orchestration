@@ -20,10 +20,8 @@ import com.softwaremill.quicklens._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import reactivemongo.api.commands.WriteResult
-import reactivemongo.bson.BSONDocument
-import reactivemongo.core.errors.DatabaseException
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord, RecordNotFound}
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.testsuite._

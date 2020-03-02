@@ -32,7 +32,8 @@ case class IvSessionData(
                           firstName: Option[String],
                           lastName: Option[String],
                           dateOfBirth: Option[LocalDate],
-                          affinityGroup : AffinityGroup
+                          affinityGroup : AffinityGroup,
+                          ivFailureReason: Option[String]
                         )
 
 object IvSessionData {

@@ -30,7 +30,8 @@ case class IvSessionDataSearchResponse(
                                         firstName: Option[String],
                                         lastName: Option[String],
                                         dateOfBirth: Option[LocalDate],
-                                        affinityGroup : AffinityGroup
+                                        affinityGroup : AffinityGroup,
+                                        ivFailureReason: Option[String]
                            )
 
 
@@ -38,7 +39,8 @@ object IvSessionDataSearchResponse {
   def fromIvSessionDataCore(ivSessionDataCore: IvSessionDataCore): IvSessionDataSearchResponse = {
     import ivSessionDataCore.ivSessionData._
     IvSessionDataSearchResponse(
-      nino, confidenceLevel, loginTimes, credentialStrength, postCode, firstName, lastName, dateOfBirth, affinityGroup
+      nino, confidenceLevel, loginTimes, credentialStrength, postCode,
+      firstName, lastName, dateOfBirth, affinityGroup, ivFailureReason
     )
   }
 
