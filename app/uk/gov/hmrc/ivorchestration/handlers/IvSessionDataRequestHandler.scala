@@ -27,7 +27,9 @@ import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearch
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
-class IvSessionDataRequestHandler[F[_]](ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra[F])(implicit monadError: MonadError[F, BusinessError]) {
+class IvSessionDataRequestHandler[F[_]](
+    ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra[F])(implicit monadError: MonadError[F, BusinessError]
+) {
 
   def create(ivSessionData: IvSessionData): F[String] =
     generateIdAndPersist(ivSessionData).map(core => buildUri(core.journeyId))

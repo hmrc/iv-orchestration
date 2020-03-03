@@ -16,30 +16,31 @@
 
 package uk.gov.hmrc.ivorchestration.config
 
+import pureconfig.ConfigSource
+import pureconfig.generic.auto._  // Do not remove this
+
 trait AppConfiguration extends MongoConfiguration with AuthServiceConfiguration with ApiDocumentationConfiguration {
 
-  import pureconfig.generic.auto._  //Do not remove this
+  lazy val auditingEnabled: Boolean =
+    ConfigSource.default.at("auditing.enabled").loadOrThrow[Boolean]
 
-  lazy val auditingEnabled: Boolean = pureconfig.loadConfigOrThrow[Boolean]("auditing.enabled")
-  lazy val graphiteHost: String     = pureconfig.loadConfigOrThrow[String]("microservice.metrics.graphite.host")
+  lazy val graphiteHost: String =
+    ConfigSource.default.at("microservice.metrics.graphite.host").loadOrThrow[String]
 }
 
 trait MongoConfiguration {
-  import pureconfig.generic.auto._
-
-  lazy val mongoConfig: MongoConfig = pureconfig.loadConfigOrThrow[MongoConfig]("mongodb")
+  lazy val mongoConfig: MongoConfig =
+    ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig]
 }
 
 trait AuthServiceConfiguration {
-  import pureconfig.generic.auto._
-
-  lazy val authConf: AuthServiceConf = pureconfig.loadConfigOrThrow[AuthServiceConf]("microservice.services.auth")
+  lazy val authConf: AuthServiceConf =
+    ConfigSource.default.at("microservice.services.auth").loadOrThrow[AuthServiceConf]
 }
 
 trait ApiDocumentationConfiguration {
-  import pureconfig.generic.auto._
-
-  lazy val apiConf: DocumentationConf = pureconfig.loadConfigOrThrow[DocumentationConf]("api")
+  lazy val apiConf: DocumentationConf =
+    ConfigSource.default.at("api").loadOrThrow[DocumentationConf]
 }
 
 case class AuthServiceConf(protocol: String, host: String, port: Int)

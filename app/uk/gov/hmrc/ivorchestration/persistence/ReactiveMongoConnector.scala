@@ -26,7 +26,7 @@ trait ReactiveMongoConnector {
 
 object ReactiveMongoConnector extends MongoConfiguration {
 
-  def apply(mongoConnector: MongoConnector = mongoConnector): DBConnector = new DBConnector(mongoConnector)
+  def apply(mongoConnector: MongoConnector = mongoConnector): DBConnector = DBConnector(mongoConnector)
 
   Logger.info("Reactive Mongo starting...")
 

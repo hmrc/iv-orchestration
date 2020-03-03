@@ -32,7 +32,9 @@ trait HeadersValidationHandler {
     new Regex( """^application/vnd[.]{1}hmrc[.]{1}(.*?)[+]{1}(.*)$""", "version", "contenttype") findFirstMatchIn _
 
   val acceptHeaderValidationRules: Option[String] => Boolean =
-    _ flatMap (a => matchHeader(a) map (res => validateContentType(res.group("contenttype")) && validateVersion(res.group("version")))) getOrElse false
+    _ flatMap (a => matchHeader(a) map {
+      res => validateContentType(res.group("contenttype")) && validateVersion(res.group("version"))
+    }) getOrElse false
 
   def validateRules(headers: Map[String, String]): Option[JsValue] =
     if (!acceptHeaderValidationRules(headers.get("Accept")))

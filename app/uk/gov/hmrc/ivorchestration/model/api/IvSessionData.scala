@@ -32,17 +32,27 @@ case class IvSessionData(
                           firstName: Option[String],
                           lastName: Option[String],
                           dateOfBirth: Option[LocalDate],
-                          affinityGroup : AffinityGroup
+                          affinityGroup : AffinityGroup,
+                          ivFailureReason: Option[String]
                         )
 
 object IvSessionData {
 
-  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
+  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](
+    JodaReads.jodaDateReads("yyyy-MM-dd"),
+    JodaWrites.jodaDateWrites("yyyy-MM-dd")
+  )
 
-  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](JodaReads.jodaLocalDateReads("yyyy-MM-dd"), JodaWrites.jodaLocalDateWrites("yyyy-MM-dd"))
+  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](
+    JodaReads.jodaLocalDateReads("yyyy-MM-dd"),
+    JodaWrites.jodaLocalDateWrites("yyyy-MM-dd")
+  )
 
   implicit val format = Json.format[IvSessionData]
 
   val dbKey: (JourneyId, CredId) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq("journeyId" -> Json.toJson(journeyId), "ivSessionData.credId" -> Json.toJson(credId))
+    (journeyId, credId) => Seq(
+      "journeyId" -> Json.toJson(journeyId),
+      "ivSessionData.credId" -> Json.toJson(credId)
+    )
 }

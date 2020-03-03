@@ -43,35 +43,36 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector,
   val requestsHandler =
     new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(dbConnector))
 
-  def ivSessionData(): Action[JsValue] = controllerAction(parse.json) {
-    implicit request =>
+  def ivSessionData(): Action[JsValue] =
+    controllerAction(parse.json) { implicit request =>
       withJsonBody[IvSessionData] { ivSessionData =>
           requestsHandler.create(ivSessionData)
             .map(loc => Created.withHeaders("Location" -> loc))
       }
-  }
+    }
 
 
-  def searchIvSessionData(): Action[JsValue] = headerValidator.validateAcceptHeader.async(parse.json)(implicit request =>
-    withErrorHandling {
-      authorised() {
-        request.body.asOpt[IvSessionDataSearchRequest] match {
-          case None => Future.successful(BadRequest(Json.toJson(badRequest)))
-          case Some(ivSessionDataSearch) =>
-            requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
-            }
-        }
-      }
-    })
-
-  protected def controllerAction[A](bodyParser: BodyParser[A])(block: Request[A] => Future[Result]): Action[A] =
-    Action.async(bodyParser) {
-      implicit request =>
-        withErrorHandling {
-          authorised() {
-            block(request)
+  def searchIvSessionData(): Action[JsValue] =
+    headerValidator.validateAcceptHeader.async(parse.json) { implicit request =>
+      withErrorHandling {
+        authorised() {
+          request.body.asOpt[IvSessionDataSearchRequest] match {
+            case None => Future.successful(BadRequest(Json.toJson(badRequest)))
+            case Some(ivSessionDataSearch) =>
+              requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
+              }
           }
         }
+      }
+    }
+
+  protected def controllerAction[A](bodyParser: BodyParser[A])(block: Request[A] => Future[Result]): Action[A] =
+    Action.async(bodyParser) { implicit request =>
+      withErrorHandling {
+        authorised() {
+          block(request)
+        }
+      }
     }
 
   private def withErrorHandling(f: => Future[Result]): Future[Result] =

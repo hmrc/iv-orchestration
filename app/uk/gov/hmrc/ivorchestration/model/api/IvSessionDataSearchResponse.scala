@@ -30,19 +30,29 @@ case class IvSessionDataSearchResponse(
                                         firstName: Option[String],
                                         lastName: Option[String],
                                         dateOfBirth: Option[LocalDate],
-                                        affinityGroup : AffinityGroup
+                                        affinityGroup : AffinityGroup,
+                                        ivFailureReason: Option[String]
                            )
 
 
 object IvSessionDataSearchResponse {
   def fromIvSessionDataCore(ivSessionDataCore: IvSessionDataCore): IvSessionDataSearchResponse = {
     import ivSessionDataCore.ivSessionData._
-    IvSessionDataSearchResponse(nino, confidenceLevel, loginTimes, credentialStrength, postCode, firstName, lastName, dateOfBirth, affinityGroup )
+    IvSessionDataSearchResponse(
+      nino, confidenceLevel, loginTimes, credentialStrength, postCode,
+      firstName, lastName, dateOfBirth, affinityGroup, ivFailureReason
+    )
   }
 
-  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](JodaReads.jodaDateReads("yyyy-MM-dd"), JodaWrites.jodaDateWrites("yyyy-MM-dd"))
+  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](
+    JodaReads.jodaDateReads("yyyy-MM-dd"),
+    JodaWrites.jodaDateWrites("yyyy-MM-dd")
+  )
 
-  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](JodaReads.jodaLocalDateReads("yyyy-MM-dd"), JodaWrites.jodaLocalDateWrites("yyyy-MM-dd"))
+  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](
+    JodaReads.jodaLocalDateReads("yyyy-MM-dd"),
+    JodaWrites.jodaLocalDateWrites("yyyy-MM-dd")
+  )
 
   implicit val format = Json.format[IvSessionDataSearchResponse]
 }

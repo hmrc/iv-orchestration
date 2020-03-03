@@ -1,4 +1,4 @@
 # microservice specific routes
 
-POST       /iv-sessiondata                       uk.gov.hmrc.ivorchestration.controllers.IvSessionDataController.ivSessionData()
-POST       /iv-sessiondata/search                uk.gov.hmrc.ivorchestration.controllers.IvSessionDataController.searchIvSessionData()
+POST   /iv-sessiondata           uk.gov.hmrc.ivorchestration.controllers.IvSessionDataController.ivSessionData()
+POST   /iv-sessiondata/search    uk.gov.hmrc.ivorchestration.controllers.IvSessionDataController.searchIvSessionData()
