@@ -22,6 +22,7 @@ import cats.MonadError
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import org.joda.time.DateTime
+import play.api.Logger
 import uk.gov.hmrc.ivorchestration.model.{BusinessError, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
@@ -36,15 +37,19 @@ class IvSessionDataRequestHandler[F[_]](
 
   def search(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataSearchResponse] =
     ivSessionDataAlgebra.findByKey(ivSessionDataSearch.journeyId, ivSessionDataSearch.credId).flatMap {
-      case None => monadError.raiseError(RecordNotFound)
+      case None =>
+        Logger.warn(s"No IV session data found for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId}")
+        monadError.raiseError(RecordNotFound)
       case Some(r) => monadError.pure(IvSessionDataSearchResponse.fromIvSessionDataCore(r))
     }
 
   protected def generateIdAndPersist(ivSessionData: IvSessionData): F[IvSessionDataCore] =
     persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), new DateTime))
 
-  protected def persist(ivSessionDataCore: IvSessionDataCore): F[IvSessionDataCore] =
+  protected def persist(ivSessionDataCore: IvSessionDataCore): F[IvSessionDataCore] = {
+    Logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId}")
     ivSessionDataAlgebra.insertIvSessionData(ivSessionDataCore)
+  }
 
   protected def buildUri(journeyId: JourneyId): String = s"${UriPrefix.uriPrefix}${journeyId.value}"
 }
