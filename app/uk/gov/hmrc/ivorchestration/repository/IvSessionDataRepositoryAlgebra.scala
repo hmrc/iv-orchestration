@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.repository
 
+import play.api.Logger
 import reactivemongo.api.indexes.Index
 import reactivemongo.api.indexes.IndexType.Ascending
 import reactivemongo.bson.{BSONDocument, BSONInteger, BSONObjectID}
@@ -61,8 +62,12 @@ class IvSessionDataRepository(mongoComponent: DBConnector)
   override def insertIvSessionData(ivSessionDataCore: IvSessionDataCore): Future[IvSessionDataCore] =
     insert(ivSessionDataCore).map(_ => ivSessionDataCore)
       .recoverWith {
-        case e: DatabaseException if e.code.contains(11000) => Future.failed(DuplicatedRecord)
-        case _: Exception => Future.failed(DatabaseError)
+        case e: DatabaseException if e.code.contains(11000) =>
+          Logger.warn(s"Store IV session data failed for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} with ${e.getMessage}")
+          Future.failed(DuplicatedRecord)
+        case e: Exception =>
+          Logger.warn(s"Store IV session data failed for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} with ${e.getMessage}")
+          Future.failed(DatabaseError)
       }
 
   override def retrieveAll(): Future[List[IvSessionDataCore]] = findAll()
