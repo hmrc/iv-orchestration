@@ -40,14 +40,18 @@ class IvSessionDataRequestHandler[F[_]](
       case None =>
         Logger.warn(s"No IV session data found for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId}")
         monadError.raiseError(RecordNotFound)
-      case Some(r) => monadError.pure(IvSessionDataSearchResponse.fromIvSessionDataCore(r))
+      case Some(r) => {
+        val searchResponse = IvSessionDataSearchResponse.fromIvSessionDataCore(r)
+        Logger.info(s"Return session data for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId} (${searchResponse.confidenceLevel}, ${searchResponse.ivFailureReason})")
+        monadError.pure(searchResponse)
+      }
     }
 
   protected def generateIdAndPersist(ivSessionData: IvSessionData): F[IvSessionDataCore] =
     persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), new DateTime))
 
   protected def persist(ivSessionDataCore: IvSessionDataCore): F[IvSessionDataCore] = {
-    Logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId}")
+    Logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} (${ivSessionDataCore.ivSessionData.confidenceLevel}, ${ivSessionDataCore.ivSessionData.ivFailureReason})")
     ivSessionDataAlgebra.insertIvSessionData(ivSessionDataCore)
   }
 
