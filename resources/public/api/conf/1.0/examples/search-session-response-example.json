@@ -6,5 +6,6 @@
   "postCode": "AA12 2BB",
   "firstName": "John",
   "lastName": "Smith",
-  "dateOfbirth": "1990-01-01"
+  "dateOfbirth": "1990-01-01",
+  "evidencesPassedCount": 1
 }

@@ -25,9 +25,10 @@ import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, Journe
 trait TestData {
   val anyAffinityGroup: AffinityGroup = Individual
 
-  val sampleIvSessionData = IvSessionData(CredId("777"), Some("123455"), 200,
+  val sampleIvSessionData: IvSessionData = IvSessionData(CredId("777"), Some("123455"), 200,
     Some(DateTime.now), Some("123"), Some("AA12 3BB"),
-    Some("Jim"), Some("Smith"), Some(LocalDate.now), anyAffinityGroup, Some("User failed IV")
+    Some("Jim"), Some("Smith"), Some(LocalDate.now), anyAffinityGroup, Some("User failed IV"),
+    Some(1)
   )
 
   val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))

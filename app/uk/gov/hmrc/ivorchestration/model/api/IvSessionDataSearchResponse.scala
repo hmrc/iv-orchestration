@@ -31,7 +31,8 @@ case class IvSessionDataSearchResponse(
                                         lastName: Option[String],
                                         dateOfBirth: Option[LocalDate],
                                         affinityGroup : AffinityGroup,
-                                        ivFailureReason: Option[String]
+                                        ivFailureReason: Option[String],
+                                        evidencesPassedCount: Option[Int]
                            )
 
 
@@ -40,7 +41,8 @@ object IvSessionDataSearchResponse {
     import ivSessionDataCore.ivSessionData._
     IvSessionDataSearchResponse(
       nino, confidenceLevel, loginTimes, credentialStrength, postCode,
-      firstName, lastName, dateOfBirth, affinityGroup, ivFailureReason
+      firstName, lastName, dateOfBirth, affinityGroup, ivFailureReason,
+      evidencesPassedCount
     )
   }
 

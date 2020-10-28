@@ -38,6 +38,10 @@
       "type": "string",
       "format": "yyyy-MM-dd",
       "description": "User's birthday"
+    },
+    "evidencesPassedCount": {
+      "type": "integer",
+      "description": "The number of evidence sources from which questions were answered"
     }
   }
 }
