@@ -19,7 +19,7 @@ This code is open source software licensed under the [Apache 2.0 License]("http:
 
 ## JSON
 
-Note that `nino`, `loginTimes`, `credentialStrength`, `postCode`, `firstName`, `lastName`, `dateOfBirth` and `ivFailureReason` are optional fields.
+Note that `nino`, `loginTimes`, `credentialStrength`, `postCode`, `firstName`, `lastName`, `dateOfBirth`, `evidencesPassedCount` and `ivFailureReason` are optional fields.
 
 ### IvSessionData
 
@@ -36,7 +36,8 @@ Note that `nino`, `loginTimes`, `credentialStrength`, `postCode`, `firstName`, `
       "lastName": "Smith",
       "dateOfbirth": "2019-08-27",
       "affinityGroup": "Individual",
-      "ivFailureReason": "User failed IV"
+      "ivFailureReason": "User failed IV",
+      "evidencesPassedCount": 1
     }
 ]
 ```
@@ -66,7 +67,8 @@ Note that `nino`, `loginTimes`, `credentialStrength`, `postCode`, `firstName`, `
       "lastName": "Smith",
       "dateOfbirth": "2019-09-12",
       "affinityGroup": "Individual",
-      "ivFailureReason": "User failed IV"
+      "ivFailureReason": "User failed IV",
+      "evidencesPassedCount": 1
     }
 ]
 ```
