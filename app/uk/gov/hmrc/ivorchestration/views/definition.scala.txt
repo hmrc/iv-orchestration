@@ -21,7 +21,7 @@
         "endpointsEnabled": true,
         "access": {
               "type": "@conf.access",
-              "whitelistedApplicationIds": @Json.toJson(conf.whiteListedApplicationIds)
+              "allowlistedApplicationIds": @Json.toJson(conf.allowListedApplicationIds)
              }
         }
     ]
