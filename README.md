@@ -12,16 +12,16 @@ Note that whilst the initial user of this solution is DWP, the intent is that th
 
 ## User Goal
 The target user set is individuals only and it will provide the following user benefits:
-Avoids having to complete IV again if they've already successfully passed HMRC IV
-Improved on-line IV success rates means the user can avoid doing IV face to face in a job centre
+* Avoids having to complete IV again if they've already successfully passed HMRC IV
+* Improved on-line IV success rates means the user can avoid doing IV face to face in a job centre
 
 ## Architectural Flow
 The high level journey is provided as follows:
 * The user starts in DWP's Universal Credit (UC) service
 * If they select to prove their identity with HMRC they are directed to sign in to government gateway or create a gg account
 * They are then redirected to iv-orchestration-frontend  that will facilitate IV and enable the collection of IV data 
-* If the user has already successfully IV’d then the relevant info will be collected and stored in a session record in this service
-* If the user has not been IV’d before or does not have the required confidence level then they are redirected into the main IV frontend to go through IV - once complete then they’ll be returned to iv-orchestration-frontend and the relevant info collected and stored in a session record in this service
+    * If the user has already successfully IV’d then the relevant info will be collected and stored in a session record in this service
+    * If the user has not been IV’d before or does not have the required confidence level then they are redirected into the main IV frontend to go through IV - once complete then they’ll be returned to iv-orchestration-frontend and the relevant info collected and stored in a session record in this service
 * If successful the user is returned to DWP's UC service along with a journey ID so that DWP can request the session record data
 * DWP call this service via the API platform to get the session record data
 DWP apply their business logic to the returned values to finalise setting up the user’s UC account
