@@ -22,7 +22,7 @@ The high level journey is provided as follows:
 * They are then redirected to iv-orchestration-frontend  that will facilitate IV and enable the collection of IV data 
     * If the user has already successfully IV’d then the relevant info will be collected and stored in a session record in this service
     * If the user has not been IV’d before or does not have the required confidence level then they are redirected into the main IV frontend to go through IV - once complete then they’ll be returned to iv-orchestration-frontend and the relevant info collected and stored in a session record in this service
-* If successful the user is returned to DWP's UC service along with a journey ID so that DWP can request the session record data
+* When completed (either pass or fail), the user is returned to DWP's UC service along with a journey ID so that DWP can request the session record data
 * DWP call this service via the API platform to get the session record data
 DWP apply their business logic to the returned values to finalise setting up the user’s UC account
 
