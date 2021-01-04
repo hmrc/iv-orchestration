@@ -95,3 +95,7 @@ Note that `nino`, `loginTimes`, `credentialStrength`, `postCode`, `firstName`, `
     }
 ]
 ```
+
+## Test Repositories
+
+The iv orchestration service is tested by the [dwp iv ui tests](https://github.com/hmrc/dwp-iv-ui-tests). If any changes are made to this service please run those tests before raising a PR. Information on how to run the tests are located in the respective repository readme.
