@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.persistence
 
-import play.api.Logger
+import play.api.Logging
 import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
 import uk.gov.hmrc.mongo.MongoConnector
 
@@ -24,18 +24,18 @@ trait ReactiveMongoConnector {
   def mongoConnector: MongoConnector
 }
 
-object ReactiveMongoConnector extends MongoConfiguration {
+object ReactiveMongoConnector extends MongoConfiguration with Logging {
 
   def apply(mongoConnector: MongoConnector = mongoConnector): DBConnector = DBConnector(mongoConnector)
 
-  Logger.info("Reactive Mongo starting...")
+  logger.info("Reactive Mongo starting...")
 
   lazy val mongoConnector: MongoConnector = MongoConnector(mongoConfig.uri)
 
-  Logger.debug(s"Reactive Mongo configuration being used: $mongoConnector")
+  logger.debug(s"Reactive Mongo configuration being used: $mongoConnector")
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
-    Logger.info("Reactive Plugin stops, closing connections...")
+    logger.info("Reactive Plugin stops, closing connections...")
     mongoConnector.close()
   })
 }

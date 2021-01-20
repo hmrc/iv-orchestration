@@ -24,6 +24,8 @@ import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, Journe
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
 
+import scala.language.higherKinds
+
 class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
 
   implicit val me = new MonadError[Id, BusinessError] {

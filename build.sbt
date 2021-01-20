@@ -1,8 +1,7 @@
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
-import uk.gov.hmrc.SbtArtifactory
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
-import sbt.Keys._
+import sbt.Keys.{evictionWarningOptions, _}
 import sbt._
 
 val appName = "iv-orchestration"
@@ -20,12 +19,16 @@ val excludedPackages = Seq(
   ".*testOnlyDoNotUseInAppConf*.*",
   "testOnly.*")
 
+val silencerVersion="1.7.0"
+
 lazy val microservice = Project(appName, file("."))
-  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin, SbtArtifactory)
+  .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .settings(
     majorVersion                     := 2,
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test
+    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
+      evictionWarningOptions           := EvictionWarningOptions.default.withWarnEvictionSummary(false)
   )
+  .settings(SilencerSettings())
   .settings(publishingSettings: _*)
   .configs(IntegrationTest)
   .settings(scalaVersion := "2.12.11")
