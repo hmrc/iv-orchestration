@@ -1,7 +1,7 @@
 import uk.gov.hmrc.DefaultBuildSettings.integrationTestSettings
 import uk.gov.hmrc.sbtdistributables.SbtDistributablesPlugin.publishingSettings
 import play.sbt.PlayImport.PlayKeys.playDefaultPort
-import sbt.Keys.{evictionWarningOptions, _}
+import sbt.Keys._
 import sbt._
 
 val appName = "iv-orchestration"
