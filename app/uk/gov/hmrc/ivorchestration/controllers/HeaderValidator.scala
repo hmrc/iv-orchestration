@@ -32,7 +32,6 @@ class HeaderValidator @Inject()(cc: ControllerComponents) extends Results with H
       override protected val executionContext: ExecutionContext = cc.executionContext
 
       def filter[T](input: Request[T]): Future[Option[Result]] = Future.successful {
-        implicit val r = input
 
         validateRules(input.headers.toSimpleMap).map(NotAcceptable(_))
       }

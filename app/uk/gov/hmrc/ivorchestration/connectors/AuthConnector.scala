@@ -19,7 +19,7 @@ package uk.gov.hmrc.ivorchestration.connectors
 import com.google.inject.Inject
 import uk.gov.hmrc.auth.core.PlayAuthConnector
 import uk.gov.hmrc.ivorchestration.config.AuthServiceConfiguration
-import uk.gov.hmrc.play.bootstrap.http.HttpClient
+import uk.gov.hmrc.http.HttpClient
 
 
 class AuthConnector @Inject()(val http: HttpClient) extends PlayAuthConnector with AuthServiceConfiguration {

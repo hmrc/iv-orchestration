@@ -19,7 +19,7 @@ package uk.gov.hmrc.ivorchestration.controllers
 import cats.instances.future._
 import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsValue, Json}
-import play.api.Logger
+import play.api.Logging
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthorisedFunctions, NoActiveSession}
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
@@ -27,19 +27,19 @@ import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
-import uk.gov.hmrc.play.bootstrap.controller.BackendController
 import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.olegpy.meow.hierarchy._
 import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton()
 class IvSessionDataController @Inject()(val authConnector: AuthConnector,
                                         headerValidator: HeaderValidator,
                                         cc: ControllerComponents)
-  extends BackendController(cc) with AuthorisedFunctions with MongoDBClient {
+  extends BackendController(cc) with AuthorisedFunctions with MongoDBClient with Logging {
 
   val requestsHandler =
     new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(dbConnector))
@@ -58,7 +58,7 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector,
         authorised() {
           request.body.asOpt[IvSessionDataSearchRequest] match {
             case None =>
-              Logger.warn(s"Missing IV session data search")
+              logger.warn(s"Missing IV session data search")
               Future.successful(BadRequest(Json.toJson(badRequest)))
             case Some(ivSessionDataSearch) =>
               requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))

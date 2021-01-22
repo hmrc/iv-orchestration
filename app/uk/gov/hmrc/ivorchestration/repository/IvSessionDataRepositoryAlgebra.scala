@@ -30,7 +30,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
+import scala.language.higherKinds
 
 trait IvSessionDataRepositoryAlgebra[F[_]] {
   def insertIvSessionData(authRetrievalCore: IvSessionDataCore): F[IvSessionDataCore]
@@ -43,6 +43,8 @@ class IvSessionDataRepository(mongoComponent: DBConnector)
     "iv-session-data", mongoComponent.mongoConnector.db, IvSessionDataCore.format
   )
   with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
+
+  private val playLogger: Logger = Logger(getClass)
 
   override def indexes: Seq[Index] = {
     Seq(
@@ -63,10 +65,10 @@ class IvSessionDataRepository(mongoComponent: DBConnector)
     insert(ivSessionDataCore).map(_ => ivSessionDataCore)
       .recoverWith {
         case e: DatabaseException if e.code.contains(11000) =>
-          Logger.warn(s"Store IV session data failed for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} with ${e.getMessage}")
+          playLogger.warn(s"Store IV session data failed for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} with ${e.getMessage}")
           Future.failed(DuplicatedRecord)
         case e: Exception =>
-          Logger.warn(s"Store IV session data failed for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} with ${e.getMessage}")
+          playLogger.warn(s"Store IV session data failed for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} with ${e.getMessage}")
           Future.failed(DatabaseError)
       }
 

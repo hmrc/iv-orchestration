@@ -22,15 +22,17 @@ import cats.MonadError
 import cats.syntax.flatMap._
 import cats.syntax.functor._
 import org.joda.time.DateTime
-import play.api.Logger
+import play.api.Logging
 import uk.gov.hmrc.ivorchestration.model.{BusinessError, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
+import scala.language.higherKinds
+
 class IvSessionDataRequestHandler[F[_]](
     ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra[F])(implicit monadError: MonadError[F, BusinessError]
-) {
+) extends Logging {
 
   def create(ivSessionData: IvSessionData): F[String] =
     generateIdAndPersist(ivSessionData).map(core => buildUri(core.journeyId))
@@ -38,11 +40,11 @@ class IvSessionDataRequestHandler[F[_]](
   def search(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataSearchResponse] =
     ivSessionDataAlgebra.findByKey(ivSessionDataSearch.journeyId, ivSessionDataSearch.credId).flatMap {
       case None =>
-        Logger.warn(s"No IV session data found for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId}")
+        logger.warn(s"No IV session data found for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId}")
         monadError.raiseError(RecordNotFound)
       case Some(r) => {
         val searchResponse = IvSessionDataSearchResponse.fromIvSessionDataCore(r)
-        Logger.info(s"Return session data for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId} (${searchResponse.confidenceLevel}, ${searchResponse.ivFailureReason})")
+        logger.info(s"Return session data for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId} (${searchResponse.confidenceLevel}, ${searchResponse.ivFailureReason})")
         monadError.pure(searchResponse)
       }
     }
@@ -51,7 +53,7 @@ class IvSessionDataRequestHandler[F[_]](
     persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), new DateTime))
 
   protected def persist(ivSessionDataCore: IvSessionDataCore): F[IvSessionDataCore] = {
-    Logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} (${ivSessionDataCore.ivSessionData.confidenceLevel}, ${ivSessionDataCore.ivSessionData.ivFailureReason})")
+    logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} (${ivSessionDataCore.ivSessionData.confidenceLevel}, ${ivSessionDataCore.ivSessionData.ivFailureReason})")
     ivSessionDataAlgebra.insertIvSessionData(ivSessionDataCore)
   }
 

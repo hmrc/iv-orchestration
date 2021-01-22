@@ -19,6 +19,7 @@ package uk.gov.hmrc.ivorchestration.testsuite
 import org.scalatest.{MustMatchers, WordSpec}
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
+import scala.language.postfixOps
 
 trait BaseSpec extends WordSpec with MustMatchers {
 

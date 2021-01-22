@@ -44,7 +44,7 @@ class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
     }
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new IvSessionDataRequestHandler[Id](algebra) {
-      val authRetrieval = generateIdAndPersist(sampleIvSessionData)
+      generateIdAndPersist(sampleIvSessionData)
       called.get mustBe true
     }
   }
