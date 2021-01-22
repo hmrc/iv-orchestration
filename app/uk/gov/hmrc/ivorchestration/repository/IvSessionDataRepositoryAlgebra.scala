@@ -30,7 +30,7 @@ import uk.gov.hmrc.mongo.ReactiveRepository
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
-
+import scala.language.higherKinds
 
 trait IvSessionDataRepositoryAlgebra[F[_]] {
   def insertIvSessionData(authRetrievalCore: IvSessionDataCore): F[IvSessionDataCore]

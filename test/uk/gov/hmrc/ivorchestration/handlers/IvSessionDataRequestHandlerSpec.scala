@@ -24,8 +24,6 @@ import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, Journe
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
 
-import scala.language.higherKinds
-
 class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
 
   implicit val me = new MonadError[Id, BusinessError] {
@@ -46,7 +44,7 @@ class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
     }
 
     "Given AuthRetrieval the requested IV session data record is created and persisted" in new IvSessionDataRequestHandler[Id](algebra) {
-      val authRetrieval = generateIdAndPersist(sampleIvSessionData)
+      generateIdAndPersist(sampleIvSessionData)
       called.get mustBe true
     }
   }
