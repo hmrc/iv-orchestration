@@ -35,7 +35,7 @@ import scala.language.higherKinds
 trait IvSessionDataRepositoryAlgebra[F[_]] {
   def insertIvSessionData(authRetrievalCore: IvSessionDataCore): F[IvSessionDataCore]
   def retrieveAll(): F[List[IvSessionDataCore]]
-  def findByKey(journeyId: JourneyId, credId: CredId): F[Option[IvSessionDataCore]]
+  def findByKey(journeyId: JourneyId, credId: Option[CredId]): F[Option[IvSessionDataCore]]
 }
 
 class IvSessionDataRepository(mongoComponent: DBConnector)
@@ -74,7 +74,7 @@ class IvSessionDataRepository(mongoComponent: DBConnector)
 
   override def retrieveAll(): Future[List[IvSessionDataCore]] = findAll()
 
-  override def findByKey(journeyId: JourneyId, credId: CredId): Future[Option[IvSessionDataCore]] = {
+  override def findByKey(journeyId: JourneyId, credId: Option[CredId]): Future[Option[IvSessionDataCore]] = {
     val query = dbKey(journeyId, credId)
     find(query: _*).map(_.headOption)
   }

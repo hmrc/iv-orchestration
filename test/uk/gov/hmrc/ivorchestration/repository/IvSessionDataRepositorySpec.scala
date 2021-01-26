@@ -46,7 +46,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
 
   "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
     val eventualData: Future[Option[IvSessionDataCore]] = for {
-      persisted    <- service.insertIvSessionData(sampleIvSessionDataCore.modify(_.ivSessionData.credId).setTo(CredId("123")).copy(journeyId = JourneyId("111")))
+      persisted    <- service.insertIvSessionData(sampleIvSessionDataCore.modify(_.ivSessionData.credId).setTo(Some(CredId("123"))).copy(journeyId = JourneyId("111")))
       _            <- service.insertIvSessionData(persisted.modify(_.journeyId).setTo(JourneyId("333")))
       data         <- service.findByKey(persisted.journeyId, persisted.ivSessionData.credId)
     } yield data
@@ -62,7 +62,17 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
   }
 
   "returns a failure with duplicate DB exception when adding with same key" in {
-    val duplicatedEntry = sampleIvSessionDataCore.copy(journeyId = JourneyId("111")).modify(_.ivSessionData.credId).setTo(CredId("123"))
+    val duplicatedEntry = sampleIvSessionDataCore.copy(journeyId = JourneyId("111")).modify(_.ivSessionData.credId).setTo(Some(CredId("123")))
+
+    await(service.insertIvSessionData(duplicatedEntry))
+
+    intercept[DuplicatedRecord.type] {
+      await(service.insertIvSessionData(duplicatedEntry))
+    }
+  }
+
+  "returns a failure with duplicate DB exception when adding with same key with no credId" in {
+    val duplicatedEntry = sampleIvSessionDataCore.copy(journeyId = JourneyId("111")).modify(_.ivSessionData.credId).setTo(None)
 
     await(service.insertIvSessionData(duplicatedEntry))
 

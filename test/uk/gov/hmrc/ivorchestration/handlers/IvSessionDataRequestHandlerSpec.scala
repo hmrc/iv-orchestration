@@ -53,7 +53,7 @@ class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
 
   val algebra = new IvSessionDataRepositoryAlgebra[Id] {
     override def retrieveAll(): Id[List[IvSessionDataCore]] = ???
-    override def findByKey(journeyId: JourneyId, credId: CredId): Id[Option[IvSessionDataCore]] = ???
+    override def findByKey(journeyId: JourneyId, credId: Option[CredId]): Id[Option[IvSessionDataCore]] = ???
     override def insertIvSessionData(ivSessionDataCore: IvSessionDataCore): Id[IvSessionDataCore] = {
       val persisted = sampleIvSessionDataCore.copy(journeyId = ivSessionDataCore.journeyId)
       ivSessionDataCore must matchPattern {

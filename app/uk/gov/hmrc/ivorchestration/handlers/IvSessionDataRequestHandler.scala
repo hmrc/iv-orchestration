@@ -25,7 +25,7 @@ import org.joda.time.DateTime
 import play.api.Logging
 import uk.gov.hmrc.ivorchestration.model.{BusinessError, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
-import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
 import scala.language.higherKinds
