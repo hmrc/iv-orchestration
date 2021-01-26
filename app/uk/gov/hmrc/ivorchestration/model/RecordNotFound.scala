@@ -21,5 +21,5 @@ sealed trait BusinessError extends Exception
 case object RecordNotFound extends BusinessError
 case object DuplicatedRecord extends BusinessError
 case object DatabaseError extends BusinessError
-
+case object CredIdForbidden extends BusinessError
 

@@ -48,7 +48,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
     val eventualData: Future[Option[IvSessionDataCore]] = for {
       persisted    <- service.insertIvSessionData(sampleIvSessionDataCore.modify(_.ivSessionData.credId).setTo(Some(CredId("123"))).copy(journeyId = JourneyId("111")))
       _            <- service.insertIvSessionData(persisted.modify(_.journeyId).setTo(JourneyId("333")))
-      data         <- service.findByKey(persisted.journeyId, persisted.ivSessionData.credId)
+      data         <- service.findByJourneyId(persisted.journeyId)
     } yield data
 
     val actual = await[Option[IvSessionDataCore]](eventualData).get

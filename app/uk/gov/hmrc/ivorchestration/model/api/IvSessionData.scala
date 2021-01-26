@@ -51,9 +51,6 @@ object IvSessionData {
 
   implicit val format = Json.format[IvSessionData]
 
-  val dbKey: (JourneyId, Option[CredId]) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq(
-      "journeyId" -> Json.toJson(journeyId),
-      "ivSessionData.credId" -> Json.toJson(credId)
-    )
+  val dbKey: (JourneyId) => Seq[(String, JsValueWrapper)] =
+    journeyId => Seq("journeyId" -> Json.toJson(journeyId))
 }

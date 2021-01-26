@@ -55,7 +55,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     status(result) mustBe CREATED
   }
 
-  "returns a 200 with session data response for a given existing journeyId & credId" in {
+  "returns a 200 with session data response for a given existing journeyId & matching credId" in {
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
     val result = stubAuthoriseController().searchIvSessionData()(FakeRequest("POST", s"${UriPrefix.uriPrefix}search/")
@@ -84,6 +84,47 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     status(result) mustBe OK
 
     contentAsJson(result) mustBe Json.toJson(IvSessionDataSearchResponse.fromIvSessionDataCore(core))
+  }
+
+  "returns a 403 FORBIDDEN for a given existing journeyId & mismatched credId" in {
+    val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
+
+    val result = stubAuthoriseController().searchIvSessionData()(FakeRequest("POST", s"${UriPrefix.uriPrefix}search/")
+      .withBody(Json.toJson(IvSessionDataSearchRequest(core.journeyId, Some(CredId("Mismatched")))))
+      .withHeaders("Accept" -> "application/vnd.hmrc.1.0+json"))
+
+    status(result) mustBe FORBIDDEN
+    contentAsJson(result) mustBe Json.toJson(ErrorResponses.forbidden)
+  }
+
+  "returns a 403 FORBIDDEN for a given existing journeyId & credId when credId is not specified in the search" in {
+    val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
+
+    val result = stubAuthoriseController().searchIvSessionData()(FakeRequest("POST", s"${UriPrefix.uriPrefix}search/")
+      .withBody(Json.toJson(IvSessionDataSearchRequest(core.journeyId, None)))
+      .withHeaders("Accept" -> "application/vnd.hmrc.1.0+json"))
+
+    status(result) mustBe FORBIDDEN
+    contentAsJson(result) mustBe Json.toJson(ErrorResponses.forbidden)
+  }
+
+  "returns a 403 FORBIDDEN for a given existing journeyId with no credId when credId is specified in the search" in {
+    val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
+      Some(DateTime.now), Some("123"), Some("AA12 3BB"),
+      Some("Jim"), Some("Smith"), Some(LocalDate.now), anyAffinityGroup, Some("User failed IV"),
+      Some(1)
+    )
+
+    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
+
+    val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
+
+    val result = stubAuthoriseController().searchIvSessionData()(FakeRequest("POST", s"${UriPrefix.uriPrefix}search/")
+      .withBody(Json.toJson(IvSessionDataSearchRequest(core.journeyId, Some(CredId{"Some cred id"}))))
+      .withHeaders("Accept" -> "application/vnd.hmrc.1.0+json"))
+
+    status(result) mustBe FORBIDDEN
+    contentAsJson(result) mustBe Json.toJson(ErrorResponses.forbidden)
   }
 
   "returns a 401 UNAUTHORIZED if not authorised" in {

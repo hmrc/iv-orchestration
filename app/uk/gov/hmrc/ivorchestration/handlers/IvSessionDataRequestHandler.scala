@@ -23,9 +23,9 @@ import cats.syntax.flatMap._
 import cats.syntax.functor._
 import org.joda.time.DateTime
 import play.api.Logging
-import uk.gov.hmrc.ivorchestration.model.{BusinessError, RecordNotFound}
+import uk.gov.hmrc.ivorchestration.model.{BusinessError, RecordNotFound, CredIdForbidden}
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
-import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
 import scala.language.higherKinds
@@ -38,15 +38,17 @@ class IvSessionDataRequestHandler[F[_]](
     generateIdAndPersist(ivSessionData).map(core => buildUri(core.journeyId))
 
   def search(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataSearchResponse] =
-    ivSessionDataAlgebra.findByKey(ivSessionDataSearch.journeyId, ivSessionDataSearch.credId).flatMap {
+    ivSessionDataAlgebra.findByJourneyId(ivSessionDataSearch.journeyId).flatMap {
       case None =>
         logger.warn(s"No IV session data found for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId}")
         monadError.raiseError(RecordNotFound)
-      case Some(r) => {
+      case Some(r) if r.ivSessionData.credId == ivSessionDataSearch.credId =>
         val searchResponse = IvSessionDataSearchResponse.fromIvSessionDataCore(r)
-        logger.info(s"Return session data for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId} (${searchResponse.confidenceLevel}, ${searchResponse.ivFailureReason})")
+        logger.info(s"Return session data for journeyId: ${ivSessionDataSearch.journeyId} (${searchResponse.confidenceLevel}, ${searchResponse.ivFailureReason})")
         monadError.pure(searchResponse)
-      }
+      case Some(r) =>
+        logger.info(s"Returned session data for journeyId: ${ivSessionDataSearch.journeyId} does not match the requested credId)")
+        monadError.raiseError(CredIdForbidden)
     }
 
   protected def generateIdAndPersist(ivSessionData: IvSessionData): F[IvSessionDataCore] =
