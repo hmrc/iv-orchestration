@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 import cats.{Id, MonadError}
 import uk.gov.hmrc.ivorchestration.model.BusinessError
-import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
 
@@ -53,7 +53,7 @@ class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
 
   val algebra = new IvSessionDataRepositoryAlgebra[Id] {
     override def retrieveAll(): Id[List[IvSessionDataCore]] = ???
-    override def findByKey(journeyId: JourneyId, credId: CredId): Id[Option[IvSessionDataCore]] = ???
+    override def findByJourneyId(journeyId: JourneyId): Id[Option[IvSessionDataCore]] = ???
     override def insertIvSessionData(ivSessionDataCore: IvSessionDataCore): Id[IvSessionDataCore] = {
       val persisted = sampleIvSessionDataCore.copy(journeyId = ivSessionDataCore.journeyId)
       ivSessionDataCore must matchPattern {

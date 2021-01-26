@@ -23,7 +23,7 @@ import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, JourneyId}
 
 case class IvSessionData(
-                          credId: CredId,
+                          credId: Option[CredId],
                           nino: Option[String],
                           confidenceLevel: Int,
                           loginTimes: Option[DateTime],
@@ -51,9 +51,6 @@ object IvSessionData {
 
   implicit val format = Json.format[IvSessionData]
 
-  val dbKey: (JourneyId, CredId) => Seq[(String, JsValueWrapper)] =
-    (journeyId, credId) => Seq(
-      "journeyId" -> Json.toJson(journeyId),
-      "ivSessionData.credId" -> Json.toJson(credId)
-    )
+  val dbKey: (JourneyId) => Seq[(String, JsValueWrapper)] =
+    journeyId => Seq("journeyId" -> Json.toJson(journeyId))
 }

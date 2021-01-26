@@ -2,7 +2,6 @@
   "type": "object",
   "description": "Search the iv session data based on cred id and journey id",
   "required": [
-    "credId",
     "journeyId"
   ],
   "properties": {

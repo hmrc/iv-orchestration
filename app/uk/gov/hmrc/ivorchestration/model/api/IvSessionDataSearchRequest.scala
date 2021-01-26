@@ -19,7 +19,7 @@ package uk.gov.hmrc.ivorchestration.model.api
 import play.api.libs.json.{Format, Json}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, JourneyId}
 
-case class IvSessionDataSearchRequest(journeyId: JourneyId, credId: CredId)
+case class IvSessionDataSearchRequest(journeyId: JourneyId, credId: Option[CredId])
 
 object IvSessionDataSearchRequest {
   implicit val format: Format[IvSessionDataSearchRequest] = Json.format

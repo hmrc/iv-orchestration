@@ -32,7 +32,7 @@ import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses._
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.olegpy.meow.hierarchy._
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound}
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound, CredIdForbidden}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton()
@@ -81,6 +81,7 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector,
     f.recover {
       case _: NoActiveSession => Unauthorized(Json.toJson(unAuthorized))
       case RecordNotFound     => NotFound(Json.toJson(notFound))
+      case CredIdForbidden    => Forbidden(Json.toJson(forbidden))
       case DatabaseError      => InternalServerError(Json.toJson(internalServerError))
       case _                  => InternalServerError(Json.toJson(internalServerError))
     }

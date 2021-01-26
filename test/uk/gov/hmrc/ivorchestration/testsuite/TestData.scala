@@ -25,7 +25,7 @@ import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, Journe
 trait TestData {
   val anyAffinityGroup: AffinityGroup = Individual
 
-  val sampleIvSessionData: IvSessionData = IvSessionData(CredId("777"), Some("123455"), 200,
+  val sampleIvSessionData: IvSessionData = IvSessionData(Some(CredId("777")), Some("123455"), 200,
     Some(DateTime.now), Some("123"), Some("AA12 3BB"),
     Some("Jim"), Some("Smith"), Some(LocalDate.now), anyAffinityGroup, Some("User failed IV"),
     Some(1)
@@ -36,7 +36,7 @@ trait TestData {
   val buildIvSessionDataCore: IvSessionData => IvSessionDataCore =
     retrieval => IvSessionDataCore(retrieval, JourneyId("123"), new DateTime)
 
-  val sampleSearchSessionDataRequest = IvSessionDataSearchRequest(JourneyId("123"), CredId("456"))
+  val sampleSearchSessionDataRequest = IvSessionDataSearchRequest(JourneyId("123"), Some(CredId("456")))
 
   val sampleSearchSessionDataResponse = IvSessionDataSearchResponse.fromIvSessionDataCore(sampleIvSessionDataCore)
 }
