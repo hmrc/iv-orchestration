@@ -30,7 +30,7 @@ case class IvSessionDataSearchResponse(
                                         firstName: Option[String],
                                         lastName: Option[String],
                                         dateOfBirth: Option[LocalDate],
-                                        affinityGroup : AffinityGroup,
+                                        affinityGroup : Option[AffinityGroup],
                                         ivFailureReason: Option[String],
                                         evidencesPassedCount: Option[Int]
                            )
