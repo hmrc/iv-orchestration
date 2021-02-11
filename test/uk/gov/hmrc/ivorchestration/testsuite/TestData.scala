@@ -27,7 +27,7 @@ trait TestData {
 
   val sampleIvSessionData: IvSessionData = IvSessionData(Some(CredId("777")), Some("123455"), 200,
     Some(DateTime.now), Some("123"), Some("AA12 3BB"),
-    Some("Jim"), Some("Smith"), Some(LocalDate.now), anyAffinityGroup, Some("User failed IV"),
+    Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
     Some(1)
   )
 

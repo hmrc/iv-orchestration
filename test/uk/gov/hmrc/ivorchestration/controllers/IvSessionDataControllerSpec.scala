@@ -69,7 +69,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   "returns a 200 with session data response for a given existing journeyId & no credId" in {
     val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
       Some(DateTime.now), Some("123"), Some("AA12 3BB"),
-      Some("Jim"), Some("Smith"), Some(LocalDate.now), anyAffinityGroup, Some("User failed IV"),
+      Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
       Some(1)
     )
 
@@ -111,7 +111,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   "returns a 403 FORBIDDEN for a given existing journeyId with no credId when credId is specified in the search" in {
     val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
       Some(DateTime.now), Some("123"), Some("AA12 3BB"),
-      Some("Jim"), Some("Smith"), Some(LocalDate.now), anyAffinityGroup, Some("User failed IV"),
+      Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
       Some(1)
     )
 
