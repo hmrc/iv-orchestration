@@ -34,7 +34,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.{IvSessionDataRequestHandler, UriPrefix}
-import uk.gov.hmrc.ivorchestration.model.DatabaseError
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, StandaloneJourneyType, UpliftJourneyType}
 import uk.gov.hmrc.ivorchestration.model.api.{ErrorResponses, IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
@@ -55,6 +55,22 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     status(result) mustBe CREATED
   }
 
+  "returns a 201 Created when an invalid AuthRetrieval request and journey type is Standalone" in {
+    val controller = new IvSessionDataController(authConnector, headerValidator, stubComponent) {
+      override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
+      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(SessionRecordNotFound("wrong"))
+      }
+    }
+
+    val standaloneIvSessionData = sampleIvSessionData.copy(journeyType = StandaloneJourneyType)
+
+    val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata").withBody(Json.toJson(standaloneIvSessionData)))
+
+    header("Location", result).get must include("/iv-orchestration/iv-sessiondata/")
+    status(result) mustBe CREATED
+  }
+
   "returns a 200 with session data response for a given existing journeyId & matching credId" in {
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
@@ -70,7 +86,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
       Some(DateTime.now), Some("123"), Some("AA12 3BB"),
       Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
-      Some(1)
+      Some(1), UpliftJourneyType
     )
 
     val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
@@ -82,7 +98,32 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       .withHeaders("Accept" -> "application/vnd.hmrc.1.0+json"))
 
     status(result) mustBe OK
+    contentAsJson(result) mustBe Json.toJson(IvSessionDataSearchResponse.fromIvSessionDataCore(core))
+  }
 
+  "returns a 200 with session data response for a given existing journeyId, given no authorization, and a journey type of Standalone" in {
+    val controller = new IvSessionDataController(authConnector, headerValidator, stubComponent) {
+      override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
+      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(SessionRecordNotFound("wrong"))
+      }
+    }
+
+    val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
+      Some(DateTime.now), Some("123"), Some("AA12 3BB"),
+      Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
+      Some(1), StandaloneJourneyType
+    )
+
+    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
+
+    val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
+
+    val result = controller.searchIvSessionData()(FakeRequest("POST", s"${UriPrefix.uriPrefix}search/")
+      .withBody(Json.toJson(IvSessionDataSearchRequest(core.journeyId, core.ivSessionData.credId)))
+      .withHeaders("Accept" -> "application/vnd.hmrc.1.0+json"))
+
+    status(result) mustBe OK
     contentAsJson(result) mustBe Json.toJson(IvSessionDataSearchResponse.fromIvSessionDataCore(core))
   }
 
@@ -112,7 +153,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
       Some(DateTime.now), Some("123"), Some("AA12 3BB"),
       Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
-      Some(1)
+      Some(1), UpliftJourneyType
     )
 
     val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
@@ -142,8 +183,6 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 500 for unexpected error" in {
-    val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
-
     val controller = new IvSessionDataController(authConnector, headerValidator, stubComponent) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
         override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
@@ -152,7 +191,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       }
 
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
-      .withBody(Json.toJson(IvSessionDataSearchRequest(core.journeyId, core.ivSessionData.credId))))
+      .withBody(Json.toJson(sampleIvSessionData)))
 
     status(result) mustBe INTERNAL_SERVER_ERROR
     contentAsJson(result) mustBe Json.toJson(ErrorResponses.internalServerError)
@@ -162,7 +201,6 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     val result = stubAuthoriseController.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
       .withBody(Json.parse("""{ "k": "v"}"""))
         .withHeaders("Content-Type" -> "application/json"))
-
 
     status(result) mustBe BAD_REQUEST
     contentAsString(result) must include("Invalid IvSessionData payload")

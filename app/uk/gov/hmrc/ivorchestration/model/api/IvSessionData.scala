@@ -20,6 +20,7 @@ import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.AffinityGroup
+import uk.gov.hmrc.ivorchestration.model.JourneyType
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, JourneyId}
 
 case class IvSessionData(
@@ -34,7 +35,8 @@ case class IvSessionData(
                           dateOfBirth: Option[LocalDate],
                           affinityGroup : Option[AffinityGroup],
                           ivFailureReason: Option[String],
-                          evidencesPassedCount: Option[Int]
+                          evidencesPassedCount: Option[Int],
+                          journeyType: JourneyType
                         )
 
 object IvSessionData {
