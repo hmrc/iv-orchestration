@@ -24,7 +24,7 @@ import cats.syntax.functor._
 import org.joda.time.DateTime
 import play.api.Logging
 import uk.gov.hmrc.ivorchestration.model.{BusinessError, RecordNotFound, CredIdForbidden}
-import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
+import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
@@ -37,15 +37,14 @@ class IvSessionDataRequestHandler[F[_]](
   def create(ivSessionData: IvSessionData): F[String] =
     generateIdAndPersist(ivSessionData).map(core => buildUri(core.journeyId))
 
-  def search(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataSearchResponse] =
+  def search(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataCore] =
     ivSessionDataAlgebra.findByJourneyId(ivSessionDataSearch.journeyId).flatMap {
       case None =>
         logger.warn(s"No IV session data found for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId}")
         monadError.raiseError(RecordNotFound)
       case Some(r) if r.ivSessionData.credId == ivSessionDataSearch.credId =>
-        val searchResponse = IvSessionDataSearchResponse.fromIvSessionDataCore(r)
-        logger.info(s"Return session data for journeyId: ${ivSessionDataSearch.journeyId} (${searchResponse.confidenceLevel}, ${searchResponse.ivFailureReason})")
-        monadError.pure(searchResponse)
+        logger.info(s"Return session data for journeyId: ${ivSessionDataSearch.journeyId} (${r.ivSessionData.confidenceLevel}, ${r.ivSessionData.ivFailureReason})")
+        monadError.pure(r)
       case Some(r) =>
         logger.info(s"Returned session data for journeyId: ${ivSessionDataSearch.journeyId} does not match the requested credId)")
         monadError.raiseError(CredIdForbidden)

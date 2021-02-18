@@ -19,6 +19,7 @@ package uk.gov.hmrc.ivorchestration.testsuite
 import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.auth.core.AffinityGroup.Individual
+import uk.gov.hmrc.ivorchestration.model.UpliftJourneyType
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 
@@ -28,7 +29,7 @@ trait TestData {
   val sampleIvSessionData: IvSessionData = IvSessionData(Some(CredId("777")), Some("123455"), 200,
     Some(DateTime.now), Some("123"), Some("AA12 3BB"),
     Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
-    Some(1)
+    Some(1), UpliftJourneyType
   )
 
   val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))

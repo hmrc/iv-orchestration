@@ -25,14 +25,15 @@ import uk.gov.hmrc.auth.core.{AuthorisedFunctions, NoActiveSession}
 import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
-import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
+import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 import com.olegpy.meow.hierarchy._
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, RecordNotFound, CredIdForbidden}
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.ivorchestration.model.{CredIdForbidden, DatabaseError, JourneyType, RecordNotFound, StandaloneJourneyType}
 import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton()
@@ -47,33 +48,34 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector,
   def ivSessionData(): Action[JsValue] =
     controllerAction(parse.json) { implicit request =>
       withJsonBody[IvSessionData] { ivSessionData =>
+        withAuth(ivSessionData.journeyType) {
           requestsHandler.create(ivSessionData)
             .map(loc => Created.withHeaders("Location" -> loc))
+        }
       }
     }
 
   def searchIvSessionData(): Action[JsValue] =
     headerValidator.validateAcceptHeader.async(parse.json) { implicit request =>
       withErrorHandling {
-        authorised() {
-          request.body.asOpt[IvSessionDataSearchRequest] match {
-            case None =>
-              logger.warn(s"Missing IV session data search")
-              Future.successful(BadRequest(Json.toJson(badRequest)))
-            case Some(ivSessionDataSearch) =>
-              requestsHandler.search(ivSessionDataSearch).map { ivSessionData => Ok(Json.toJson(ivSessionData))
+        request.body.asOpt[IvSessionDataSearchRequest] match {
+          case None =>
+            logger.warn(s"Missing IV session data search")
+            Future.successful(BadRequest(Json.toJson(badRequest)))
+          case Some(ivSessionDataSearch) =>
+            requestsHandler.search(ivSessionDataSearch).flatMap { ivSessionData =>
+              withAuth(ivSessionData.ivSessionData.journeyType) {
+                Future.successful(Ok(Json.toJson(IvSessionDataSearchResponse.fromIvSessionDataCore(ivSessionData))))
               }
+            }
           }
         }
       }
-    }
 
   protected def controllerAction[A](bodyParser: BodyParser[A])(block: Request[A] => Future[Result]): Action[A] =
     Action.async(bodyParser) { implicit request =>
       withErrorHandling {
-        authorised() {
-          block(request)
-        }
+        block(request)
       }
     }
 
@@ -85,4 +87,12 @@ class IvSessionDataController @Inject()(val authConnector: AuthConnector,
       case DatabaseError      => InternalServerError(Json.toJson(internalServerError))
       case _                  => InternalServerError(Json.toJson(internalServerError))
     }
+
+  private def withAuth (journeyType: JourneyType)(f: => Future[Result])(implicit hc: HeaderCarrier): Future[Result] = {
+    journeyType match {
+      case StandaloneJourneyType => f
+      case _ => authorised() {f}
+    }
+  }
+
 }
