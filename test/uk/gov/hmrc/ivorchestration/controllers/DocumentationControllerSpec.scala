@@ -29,8 +29,8 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
   "provide definition endpoint for each api" in new Setup {
     val result = documentationController.definition()(request)
-    contentAsJson(result)
 
+    contentAsString(result) mustNot contain ("whitelistedApplicationIds")
     status(result) mustBe OK
   }
 
