@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 HM Revenue & Customs
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,6 @@ object ReactiveMongoConnector extends MongoConfiguration with Logging {
   logger.info("Reactive Mongo starting...")
 
   lazy val mongoConnector: MongoConnector = MongoConnector(mongoConfig.uri)
-
-  logger.debug(s"Reactive Mongo configuration being used: $mongoConnector")
 
   Runtime.getRuntime.addShutdownHook(new Thread() {
     logger.info("Reactive Plugin stops, closing connections...")
