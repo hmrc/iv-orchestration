@@ -32,8 +32,6 @@ object ReactiveMongoConnector extends MongoConfiguration with Logging {
 
   lazy val mongoConnector: MongoConnector = MongoConnector(mongoConfig.uri)
 
-  logger.info(s"Reactive Mongo configuration being used: $mongoConnector")
-
   Runtime.getRuntime.addShutdownHook(new Thread() {
     logger.info("Reactive Plugin stops, closing connections...")
     mongoConnector.close()
