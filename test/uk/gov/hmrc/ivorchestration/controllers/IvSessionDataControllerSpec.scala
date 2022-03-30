@@ -19,7 +19,7 @@ package uk.gov.hmrc.ivorchestration.controllers
 import akka.stream.Materializer
 import cats.instances.future._
 import com.olegpy.meow.hierarchy._
-import org.joda.time.{DateTime, DateTimeZone, LocalDate}
+import org.joda.time.{DateTime, LocalDate}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -31,20 +31,20 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.auth.core.SessionRecordNotFound
 import uk.gov.hmrc.auth.core.authorise.EmptyPredicate
 import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.{IvSessionDataRequestHandler, UriPrefix}
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, StandaloneJourneyType, UpliftJourneyType}
 import uk.gov.hmrc.ivorchestration.model.api.{ErrorResponses, IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
-import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, StandaloneJourneyType, UpliftJourneyType}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
+import uk.gov.hmrc.mongo.MongoComponent
 
+import java.time.LocalDateTime
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
-class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MongoDBClient with BeforeAndAfterEach with MockFactory with TestData {
+class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with BeforeAndAfterEach with MockFactory with TestData {
   implicit val hc = HeaderCarrier()
 
   "returns a 201 Created when a valid AuthRetrieval request" in {
@@ -56,7 +56,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 201 Created when an invalid AuthRetrieval request and journey type is Standalone" in {
-    val controller = new IvSessionDataController(authConnector, headerValidator, stubComponent) {
+    val controller = new IvSessionDataController(authConnector, headerValidator, service, stubComponent) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
       override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
         override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(SessionRecordNotFound("wrong"))
@@ -89,7 +89,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       Some(1), UpliftJourneyType
     )
 
-    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
+    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), LocalDateTime.now())
 
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
@@ -102,7 +102,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 200 with session data response for a given existing journeyId, given no authorization, and a journey type of Standalone" in {
-    val controller = new IvSessionDataController(authConnector, headerValidator, stubComponent) {
+    val controller = new IvSessionDataController(authConnector, headerValidator, service, stubComponent) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
       override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
         override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(SessionRecordNotFound("wrong"))
@@ -115,7 +115,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       Some(1), StandaloneJourneyType
     )
 
-    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
+    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), LocalDateTime.now())
 
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
@@ -156,7 +156,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
       Some(1), UpliftJourneyType
     )
 
-    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
+    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), LocalDateTime.now())
 
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
@@ -169,7 +169,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 401 UNAUTHORIZED if not authorised" in {
-    val controller = new IvSessionDataController(authConnector, headerValidator, stubComponent) {
+    val controller = new IvSessionDataController(authConnector, headerValidator, service, stubComponent) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
         override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
           override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(SessionRecordNotFound("wrong"))
@@ -183,7 +183,7 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   "returns a 500 for unexpected error" in {
-    val controller = new IvSessionDataController(authConnector, headerValidator, stubComponent) {
+    val controller = new IvSessionDataController(authConnector, headerValidator, service, stubComponent) {
       override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
         override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
           override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(DatabaseError)
@@ -224,7 +224,8 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     contentAsJson(result) mustBe Json.toJson(ErrorResponses.notFound)
   }
 
-  private val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
+  val mongoComponent: MongoComponent = app.injector.instanceOf[MongoComponent]
+  private val service = new IvSessionDataRepository(mongoComponent)
   private val handler = new IvSessionDataRequestHandler[Future](service)
   private val authConnector = mock[AuthConnector]
 
@@ -232,14 +233,14 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   implicit lazy val messagesApi: MessagesApi = injector.instanceOf[MessagesApi]
   implicit lazy val materializer: Materializer = app.materializer
 
-  override def beforeEach(): Unit = await(service.removeAll())
-  override def afterEach(): Unit = await(service.removeAll())
+  override def beforeEach(): Unit = await(service.collection.drop().toFuture())
+  override def afterEach(): Unit = await(service.collection.drop().toFuture())
 
   private val stubComponent = stubControllerComponents()
 
   private val headerValidator =  new HeaderValidator(stubComponent)
 
-  def stubAuthoriseController(): IvSessionDataController = new IvSessionDataController(authConnector, headerValidator, stubComponent) {
+  def stubAuthoriseController(): IvSessionDataController = new IvSessionDataController(authConnector, headerValidator, service, stubComponent) {
     override val requestsHandler: IvSessionDataRequestHandler[Future] = handler
     override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
       override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = body

@@ -17,27 +17,24 @@
 package uk.gov.hmrc.ivorchestration.model.api
 
 import org.joda.time.{DateTime, LocalDate}
-import play.api.libs.json.Json.JsValueWrapper
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.ivorchestration.model.JourneyType
-import uk.gov.hmrc.ivorchestration.model.core.{CredId, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.core.CredId
 
-case class IvSessionData(
-                          credId: Option[CredId],
-                          nino: Option[String],
-                          confidenceLevel: Int,
-                          loginTimes: Option[DateTime],
-                          credentialStrength: Option[String],
-                          postCode: Option[String],
-                          firstName: Option[String],
-                          lastName: Option[String],
-                          dateOfBirth: Option[LocalDate],
-                          affinityGroup : Option[AffinityGroup],
-                          ivFailureReason: Option[String],
-                          evidencesPassedCount: Option[Int],
-                          journeyType: JourneyType
-                        )
+case class IvSessionData(credId: Option[CredId],
+                         nino: Option[String],
+                         confidenceLevel: Int,
+                         loginTimes: Option[DateTime],
+                         credentialStrength: Option[String],
+                         postCode: Option[String],
+                         firstName: Option[String],
+                         lastName: Option[String],
+                         dateOfBirth: Option[LocalDate],
+                         affinityGroup : Option[AffinityGroup],
+                         ivFailureReason: Option[String],
+                         evidencesPassedCount: Option[Int],
+                         journeyType: JourneyType)
 
 object IvSessionData {
 
@@ -53,6 +50,4 @@ object IvSessionData {
 
   implicit val format = Json.format[IvSessionData]
 
-  val dbKey: (JourneyId) => Seq[(String, JsValueWrapper)] =
-    journeyId => Seq("journeyId" -> Json.toJson(journeyId))
 }

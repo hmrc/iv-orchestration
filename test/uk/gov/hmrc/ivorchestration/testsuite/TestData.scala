@@ -23,6 +23,8 @@ import uk.gov.hmrc.ivorchestration.model.UpliftJourneyType
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 
+import java.time.LocalDateTime
+
 trait TestData {
   val anyAffinityGroup: AffinityGroup = Individual
 
@@ -32,10 +34,10 @@ trait TestData {
     Some(1), UpliftJourneyType
   )
 
-  val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
+  val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), LocalDateTime.now())
 
   val buildIvSessionDataCore: IvSessionData => IvSessionDataCore =
-    retrieval => IvSessionDataCore(retrieval, JourneyId("123"), new DateTime)
+    retrieval => IvSessionDataCore(retrieval, JourneyId("123"), LocalDateTime.now())
 
   val sampleSearchSessionDataRequest = IvSessionDataSearchRequest(JourneyId("123"), Some(CredId("456")))
 
