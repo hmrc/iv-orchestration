@@ -17,6 +17,7 @@
 package uk.gov.hmrc.ivorchestration.repository
 
 import com.softwaremill.quicklens._
+import org.mongodb.scala.MongoCollection
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -82,6 +83,17 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
       .modify(_.ivSessionData.dateOfBirth).setTo(dateOfBirth)
 
     await(service.collection.drop().toFuture())
+  }
+
+  "Returns a failure with DatabaseError for any DB exception" in {
+    lazy val stubFailingService = new IvSessionDataRepository(mongoComponent) {
+      override lazy val collection: MongoCollection[IvSessionDataCore] =
+        throw new Exception("BOOM!")
+    }
+
+    intercept[Exception] {
+      await(stubFailingService.insertIvSessionData(buildIvSessionDataCore(sampleIvSessionData)))
+    }
   }
 
 }

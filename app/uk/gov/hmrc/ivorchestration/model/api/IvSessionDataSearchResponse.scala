@@ -16,24 +16,23 @@
 
 package uk.gov.hmrc.ivorchestration.model.api
 
-import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.ivorchestration.model.core.IvSessionDataCore
 
-case class IvSessionDataSearchResponse(
-                                        nino: Option[String],
-                                        confidenceLevel: Int,
-                                        loginTimes: Option[DateTime],
-                                        credentialStrength: Option[String],
-                                        postCode: Option[String],
-                                        firstName: Option[String],
-                                        lastName: Option[String],
-                                        dateOfBirth: Option[LocalDate],
-                                        affinityGroup : Option[AffinityGroup],
-                                        ivFailureReason: Option[String],
-                                        evidencesPassedCount: Option[Int]
-                           )
+import java.time.{LocalDate, LocalTime}
+
+case class IvSessionDataSearchResponse(nino: Option[String],
+                                       confidenceLevel: Int,
+                                       loginTimes: Option[LocalTime],
+                                       credentialStrength: Option[String],
+                                       postCode: Option[String],
+                                       firstName: Option[String],
+                                       lastName: Option[String],
+                                       dateOfBirth: Option[LocalDate],
+                                       affinityGroup : Option[AffinityGroup],
+                                       ivFailureReason: Option[String],
+                                       evidencesPassedCount: Option[Int])
 
 
 object IvSessionDataSearchResponse {
@@ -46,15 +45,20 @@ object IvSessionDataSearchResponse {
     )
   }
 
-  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](
-    JodaReads.jodaDateReads("yyyy-MM-dd"),
-    JodaWrites.jodaDateWrites("yyyy-MM-dd")
-  )
+  implicit val dateTimeFormat: Format[LocalTime] = new Format[LocalTime] {
+    override def reads(json: JsValue): JsResult[LocalTime] =
+      json.validate[String].map(LocalTime.parse)
 
-  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](
-    JodaReads.jodaLocalDateReads("yyyy-MM-dd"),
-    JodaWrites.jodaLocalDateWrites("yyyy-MM-dd")
-  )
+    override def writes(o: LocalTime): JsValue = Json.toJson(o.toString)
+  }
+
+
+  implicit val localDateFormat: Format[LocalDate] = new Format[LocalDate] {
+    override def reads(json: JsValue): JsResult[LocalDate] =
+      json.validate[String].map(LocalDate.parse)
+
+    override def writes(o: LocalDate): JsValue = Json.toJson(o.toString)
+  }
 
   implicit val format = Json.format[IvSessionDataSearchResponse]
 }
