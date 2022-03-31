@@ -20,7 +20,7 @@ import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions}
 import play.api.Logger
 import pureconfig.ConfigSource
-import pureconfig.generic.auto._
+import pureconfig.generic.auto._ //do not remove this import
 import uk.gov.hmrc.ivorchestration.config.{MongoConfig, MongoConfiguration}
 import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
@@ -76,6 +76,3 @@ class IvSessionDataRepository @Inject()(mongoComponent: MongoComponent)
     collection.find(Filters.eq("journeyId", journeyId.value)).headOption()
   }
 }
-
-
-
