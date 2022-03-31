@@ -51,7 +51,8 @@ class IvSessionDataRepository @Inject()(mongoComponent: MongoComponent)
       IndexModel(
         ascending("journeyId", "ivSessionData.credId"), IndexOptions().name("Primary").unique(true)
       )
-    )
+    ),
+    replaceIndexes = true
   ) with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
 
   private val playLogger: Logger = Logger(getClass)
