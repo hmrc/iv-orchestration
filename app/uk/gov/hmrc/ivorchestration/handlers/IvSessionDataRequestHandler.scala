@@ -25,7 +25,7 @@ import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.model.{BusinessError, CredIdForbidden, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
-import java.time.LocalDateTime
+import java.time.{LocalDateTime, ZoneOffset}
 import java.util.UUID
 import scala.language.higherKinds
 
@@ -50,7 +50,7 @@ class IvSessionDataRequestHandler[F[_]](
     }
 
   protected def generateIdAndPersist(ivSessionData: IvSessionData): F[IvSessionDataCore] =
-    persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), LocalDateTime.now()))
+    persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), LocalDateTime.now(ZoneOffset.UTC)))
 
   protected def persist(ivSessionDataCore: IvSessionDataCore): F[IvSessionDataCore] = {
     logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} (${ivSessionDataCore.ivSessionData.confidenceLevel}, ${ivSessionDataCore.ivSessionData.ivFailureReason})")
