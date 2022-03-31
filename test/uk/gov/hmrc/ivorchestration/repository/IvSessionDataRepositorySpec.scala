@@ -17,48 +17,32 @@
 package uk.gov.hmrc.ivorchestration.repository
 
 import com.softwaremill.quicklens._
+import org.mongodb.scala.MongoCollection
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
-import reactivemongo.api.commands.WriteResult
-import uk.gov.hmrc.ivorchestration.config.MongoDBClient
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord}
+import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import uk.gov.hmrc.ivorchestration.model.DuplicatedRecord
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
-import uk.gov.hmrc.ivorchestration.persistence.ReactiveMongoConnector
 import uk.gov.hmrc.ivorchestration.testsuite._
+import uk.gov.hmrc.mongo.MongoComponent
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.Future
 
-class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with BeforeAndAfterEach with ScalaFutures with TestData {
+class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with ScalaFutures with TestData with GuiceOneAppPerSuite {
 
-  val service = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector))
+  val mongoComponent: MongoComponent = app.injector.instanceOf[MongoComponent]
+  val service = new IvSessionDataRepository(mongoComponent)
 
   "can Add and retrieve AuthRetrieval entity" in {
-    val eventualData: Future[List[IvSessionDataCore]] = for {
+    val eventualData: Future[Seq[IvSessionDataCore]] = for {
       _    <- service.insertIvSessionData(buildIvSessionDataCore(sampleIvSessionData))
       data <- service.retrieveAll()
     } yield data
 
-    val actual = await[List[IvSessionDataCore]](eventualData).head.ivSessionData
+    val actual = await[Seq[IvSessionDataCore]](eventualData).head.ivSessionData
 
     actual mustBe sampleIvSessionData.copy(loginTimes = actual.loginTimes, dateOfBirth = actual.dateOfBirth)
-  }
-
-  "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
-    val eventualData: Future[Option[IvSessionDataCore]] = for {
-      persisted    <- service.insertIvSessionData(sampleIvSessionDataCore.modify(_.ivSessionData.credId).setTo(Some(CredId("123"))).copy(journeyId = JourneyId("111")))
-      _            <- service.insertIvSessionData(persisted.modify(_.journeyId).setTo(JourneyId("333")))
-      data         <- service.findByJourneyId(persisted.journeyId)
-    } yield data
-
-    val actual = await[Option[IvSessionDataCore]](eventualData).get
-    import actual.ivSessionData._
-
-    actual mustBe sampleIvSessionDataCore
-      .modify(_.journeyId).setTo(actual.journeyId)
-      .modify(_.ivSessionData.credId).setTo(credId)
-      .modify(_.ivSessionData.loginTimes).setTo(loginTimes)
-      .modify(_.ivSessionData.dateOfBirth).setTo(dateOfBirth)
   }
 
   "returns a failure with duplicate DB exception when adding with same key" in {
@@ -81,17 +65,35 @@ class IvSessionDataRepositorySpec extends BaseSpec with MongoDBClient with Befor
     }
   }
 
+  "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
+    await(service.collection.drop().toFuture())
+    val eventualData: Future[Option[IvSessionDataCore]] = for {
+      persisted    <- service.insertIvSessionData(sampleIvSessionDataCore.modify(_.ivSessionData.credId).setTo(Some(CredId("123"))).copy(journeyId = JourneyId("111")))
+      _            <- service.insertIvSessionData(persisted.modify(_.journeyId).setTo(JourneyId("333")))
+      data         <- service.findByJourneyId(persisted.journeyId)
+    } yield data
+
+    val actual = await[Option[IvSessionDataCore]](eventualData).get
+    import actual.ivSessionData._
+
+    actual mustBe sampleIvSessionDataCore
+      .modify(_.journeyId).setTo(actual.journeyId)
+      .modify(_.ivSessionData.credId).setTo(credId)
+      .modify(_.ivSessionData.loginTimes).setTo(loginTimes)
+      .modify(_.ivSessionData.dateOfBirth).setTo(dateOfBirth)
+
+    await(service.collection.drop().toFuture())
+  }
+
   "Returns a failure with DatabaseError for any DB exception" in {
-    val stubFailingService = new IvSessionDataRepository(ReactiveMongoConnector(mongoConnector)) {
-      override def insert(entity: IvSessionDataCore)(implicit ec: ExecutionContext): Future[WriteResult] =
-        Future.failed(new Exception("BOOM!"))
+    lazy val stubFailingService = new IvSessionDataRepository(mongoComponent) {
+      override lazy val collection: MongoCollection[IvSessionDataCore] =
+        throw new Exception("BOOM!")
     }
 
-    intercept[DatabaseError.type] {
+    intercept[Exception] {
       await(stubFailingService.insertIvSessionData(buildIvSessionDataCore(sampleIvSessionData)))
     }
   }
 
-  override def beforeEach(): Unit = await(service.removeAll())
-  override def afterEach(): Unit = await(service.removeAll())
 }

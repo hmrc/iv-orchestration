@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.ivorchestration.testsuite
 
-import org.scalatest.{MustMatchers, WordSpec}
+import org.scalatest.matchers.must.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+
 import scala.concurrent.duration._
 import scala.concurrent.{Await, Future}
 import scala.language.postfixOps
 
-trait BaseSpec extends WordSpec with MustMatchers {
-
+trait BaseSpec extends AnyWordSpec with Matchers {
   def await[A](future: Future[A]): A = Await.result(future, 20 seconds)
 }

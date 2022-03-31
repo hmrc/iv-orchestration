@@ -16,67 +16,64 @@
 
 package uk.gov.hmrc.ivorchestration.repository
 
+import org.mongodb.scala.model.Indexes.ascending
+import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions}
 import play.api.Logger
-import reactivemongo.api.indexes.Index
-import reactivemongo.api.indexes.IndexType.Ascending
-import reactivemongo.bson.{BSONDocument, BSONInteger, BSONObjectID}
-import reactivemongo.core.errors.DatabaseException
-import uk.gov.hmrc.ivorchestration.config.MongoConfiguration
-import uk.gov.hmrc.ivorchestration.model.api.IvSessionData._
-import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import pureconfig.ConfigSource
+import pureconfig.generic.auto._
+import uk.gov.hmrc.ivorchestration.config.{MongoConfig, MongoConfiguration}
 import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord}
-import uk.gov.hmrc.ivorchestration.persistence.DBConnector
-import uk.gov.hmrc.mongo.ReactiveRepository
+import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
+import scala.concurrent.duration.SECONDS
 import scala.language.higherKinds
 
 trait IvSessionDataRepositoryAlgebra[F[_]] {
   def insertIvSessionData(authRetrievalCore: IvSessionDataCore): F[IvSessionDataCore]
-  def retrieveAll(): F[List[IvSessionDataCore]]
+  def retrieveAll(): F[Seq[IvSessionDataCore]]
   def findByJourneyId(journeyId: JourneyId): F[Option[IvSessionDataCore]]
 }
 
-class IvSessionDataRepository(mongoComponent: DBConnector)
-  extends ReactiveRepository[IvSessionDataCore, BSONObjectID](
-    "iv-session-data", mongoComponent.mongoConnector.db, IvSessionDataCore.format
-  )
-  with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
+@Singleton()
+class IvSessionDataRepository @Inject()(mongoComponent: MongoComponent)
+  extends PlayMongoRepository[IvSessionDataCore](
+    collectionName = "iv-session-data", mongoComponent = mongoComponent, domainFormat = IvSessionDataCore.format,
+    indexes = Seq(
+      IndexModel(
+        ascending("createdAt"),
+        indexOptions = IndexOptions().name("expireAfterSeconds").expireAfter(ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig].ttl, SECONDS)
+      ),
+      IndexModel(
+        ascending("journeyId", "ivSessionData.credId"), IndexOptions().name("Primary").unique(true)
+      )
+    )
+  ) with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
 
   private val playLogger: Logger = Logger(getClass)
 
-  override def indexes: Seq[Index] = {
-    Seq(
-      Index(
-        Seq("createdAt" -> Ascending),
-        options = BSONDocument(Seq("expireAfterSeconds" -> BSONInteger(mongoConfig.ttl)))
-    ),
-      Index(
-        Seq("journeyId" -> Ascending,
-            "ivSessionData.credId" -> Ascending),
-            Option("Primary"),
-            unique = true
-      )
-    )
-  }
-
-  override def insertIvSessionData(ivSessionDataCore: IvSessionDataCore): Future[IvSessionDataCore] =
-    insert(ivSessionDataCore).map(_ => ivSessionDataCore)
+  override def insertIvSessionData(ivSessionDataCore: IvSessionDataCore): Future[IvSessionDataCore] = {
+    collection.insertOne(ivSessionDataCore).map(_ => ivSessionDataCore).toFuture().map(_.head)
       .recoverWith {
-        case e: DatabaseException if e.code.contains(11000) =>
+        case e: Exception if e.getMessage.contains("11000") =>
           playLogger.warn(s"Store IV session data failed for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} with ${e.getMessage}")
           Future.failed(DuplicatedRecord)
         case e: Exception =>
           playLogger.warn(s"Store IV session data failed for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} with ${e.getMessage}")
           Future.failed(DatabaseError)
       }
+  }
 
-  override def retrieveAll(): Future[List[IvSessionDataCore]] = findAll()
+  override def retrieveAll(): Future[Seq[IvSessionDataCore]] = {
+    collection.find().toFuture()
+  }
 
   override def findByJourneyId(journeyId: JourneyId): Future[Option[IvSessionDataCore]] = {
-    val query = dbKey(journeyId)
-    find(query: _*).map(_.headOption)
+    collection.find(Filters.eq("journeyId", journeyId.value)).headOption()
   }
 }
 

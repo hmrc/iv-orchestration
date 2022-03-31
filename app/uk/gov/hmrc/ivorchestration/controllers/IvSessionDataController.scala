@@ -22,7 +22,6 @@ import play.api.libs.json.{JsValue, Json}
 import play.api.Logging
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthorisedFunctions, NoActiveSession}
-import uk.gov.hmrc.ivorchestration.config.MongoDBClient
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
@@ -39,11 +38,11 @@ import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 @Singleton()
 class IvSessionDataController @Inject()(val authConnector: AuthConnector,
                                         headerValidator: HeaderValidator,
+                                        ivSessionDataRepository: IvSessionDataRepository,
                                         cc: ControllerComponents)
-  extends BackendController(cc) with AuthorisedFunctions with MongoDBClient with Logging {
+  extends BackendController(cc) with AuthorisedFunctions with Logging {
 
-  val requestsHandler =
-    new IvSessionDataRequestHandler[Future](new IvSessionDataRepository(dbConnector))
+  val requestsHandler = new IvSessionDataRequestHandler[Future](ivSessionDataRepository)
 
   def ivSessionData(): Action[JsValue] =
     controllerAction(parse.json) { implicit request =>
