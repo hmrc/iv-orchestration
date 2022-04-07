@@ -46,7 +46,7 @@ class IvSessionDataRepository @Inject()(mongoComponent: MongoComponent)
     indexes = Seq(
       IndexModel(
         ascending("createdAt"),
-        indexOptions = IndexOptions().name("expireAfterSeconds").expireAfter(ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig].ttl, SECONDS)
+        indexOptions = IndexOptions().name("createdAt_1").expireAfter(ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig].ttl, SECONDS)
       ),
       IndexModel(
         ascending("journeyId", "ivSessionData.credId"), IndexOptions().name("Primary").unique(true)
