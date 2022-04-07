@@ -196,6 +196,16 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     contentAsJson(result) mustBe Json.toJson(ErrorResponses.internalServerError)
   }
 
+  // the payload of the response contains the detailed parse error
+  // removing the loginTimes entry here will make this test pass
+  "returns a 201 CREATED for an invalid AuthRetrieval request with date format YYYY-MM-DD" in {
+    val result = stubAuthoriseController.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
+      .withBody(Json.parse("""{"confidenceLevel": 200, "journeyType": "uplift", "loginTimes": "2019-08-27"}""".stripMargin))
+      .withHeaders("Content-Type" -> "application/json"))
+
+    status(result) mustBe CREATED
+  }
+
   "returns a 400 BAD_REQUEST for an invalid AuthRetrieval request" in {
     val result = stubAuthoriseController.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
       .withBody(Json.parse("""{ "k": "v"}"""))
