@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.controllers
 
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import akka.stream.Materializer
 import cats.instances.future._
 import com.olegpy.meow.hierarchy._
@@ -39,7 +40,6 @@ import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
 import uk.gov.hmrc.mongo.MongoComponent
 
-import java.time.{LocalDate, LocalDateTime, LocalTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -83,12 +83,12 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
   "returns a 200 with session data response for a given existing journeyId & no credId" in {
     val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
-      Some(LocalTime.now), Some("123"), Some("AA12 3BB"),
+      Some(DateTime.now), Some("123"), Some("AA12 3BB"),
       Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
       Some(1), UpliftJourneyType
     )
 
-    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), LocalDateTime.now())
+    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
 
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
@@ -109,12 +109,12 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     }
 
     val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
-      Some(LocalTime.now), Some("123"), Some("AA12 3BB"),
+      Some(DateTime.now), Some("123"), Some("AA12 3BB"),
       Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
       Some(1), StandaloneJourneyType
     )
 
-    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), LocalDateTime.now())
+    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
 
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 
@@ -150,12 +150,12 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
   "returns a 403 FORBIDDEN for a given existing journeyId with no credId when credId is specified in the search" in {
     val sampleIvSessionData: IvSessionData = IvSessionData(None, Some("123455"), 200,
-      Some(LocalTime.now), Some("123"), Some("AA12 3BB"),
+      Some(DateTime.now), Some("123"), Some("AA12 3BB"),
       Some("Jim"), Some("Smith"), Some(LocalDate.now), Some(anyAffinityGroup), Some("User failed IV"),
       Some(1), UpliftJourneyType
     )
 
-    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), LocalDateTime.now())
+    val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"), DateTime.now(DateTimeZone.UTC))
 
     val core: IvSessionDataCore = await(service.insertIvSessionData(sampleIvSessionDataCore))
 

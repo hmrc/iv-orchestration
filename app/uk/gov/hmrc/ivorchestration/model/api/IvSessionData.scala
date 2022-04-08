@@ -16,17 +16,16 @@
 
 package uk.gov.hmrc.ivorchestration.model.api
 
+import org.joda.time.{DateTime, LocalDate}
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.ivorchestration.model.JourneyType
 import uk.gov.hmrc.ivorchestration.model.core.CredId
 
-import java.time.{LocalDate, LocalTime}
-
 case class IvSessionData(credId: Option[CredId],
                          nino: Option[String],
                          confidenceLevel: Int,
-                         loginTimes: Option[LocalTime],
+                         loginTimes: Option[DateTime],
                          credentialStrength: Option[String],
                          postCode: Option[String],
                          firstName: Option[String],
@@ -39,21 +38,15 @@ case class IvSessionData(credId: Option[CredId],
 
 object IvSessionData {
 
-  implicit val dateTimeFormat: Format[LocalTime] = new Format[LocalTime] {
-    override def reads(json: JsValue): JsResult[LocalTime] =
-      json.validate[String].map(LocalTime.parse)
+  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](
+    JodaReads.jodaDateReads("yyyy-MM-dd"),
+    JodaWrites.jodaDateWrites("yyyy-MM-dd")
+  )
 
-    override def writes(o: LocalTime): JsValue = Json.toJson(o.toString)
-  }
-
-
-  implicit val localDateFormat: Format[LocalDate] = new Format[LocalDate] {
-    override def reads(json: JsValue): JsResult[LocalDate] =
-      json.validate[String].map(LocalDate.parse)
-
-    override def writes(o: LocalDate): JsValue = Json.toJson(o.toString)
-  }
-
+  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](
+    JodaReads.jodaLocalDateReads("yyyy-MM-dd"),
+    JodaWrites.jodaLocalDateWrites("yyyy-MM-dd")
+  )
 
   implicit val format: OFormat[IvSessionData] = Json.format[IvSessionData]
 

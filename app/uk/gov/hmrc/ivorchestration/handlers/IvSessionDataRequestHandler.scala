@@ -19,13 +19,13 @@ package uk.gov.hmrc.ivorchestration.handlers
 import cats.MonadError
 import cats.syntax.flatMap._
 import cats.syntax.functor._
+import org.joda.time.DateTime
 import play.api.Logging
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.model.{BusinessError, CredIdForbidden, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
-import java.time.{LocalDateTime, ZoneOffset}
 import java.util.UUID
 import scala.language.higherKinds
 
@@ -50,7 +50,7 @@ class IvSessionDataRequestHandler[F[_]](
     }
 
   protected def generateIdAndPersist(ivSessionData: IvSessionData): F[IvSessionDataCore] =
-    persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), LocalDateTime.now(ZoneOffset.UTC)))
+    persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), new DateTime))
 
   protected def persist(ivSessionDataCore: IvSessionDataCore): F[IvSessionDataCore] = {
     logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} (${ivSessionDataCore.ivSessionData.confidenceLevel}, ${ivSessionDataCore.ivSessionData.ivFailureReason})")
