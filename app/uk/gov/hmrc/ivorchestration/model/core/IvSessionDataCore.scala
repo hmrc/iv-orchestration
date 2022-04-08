@@ -16,26 +16,17 @@
 
 package uk.gov.hmrc.ivorchestration.model.core
 
+import org.joda.time.DateTime
 import play.api.libs.json._
 import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
+import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 
-import java.time.{Instant, LocalDateTime, ZoneOffset}
 
-case class IvSessionDataCore(ivSessionData: IvSessionData, journeyId: JourneyId, createdAt: LocalDateTime)
+case class IvSessionDataCore(ivSessionData: IvSessionData, journeyId: JourneyId, createdAt: DateTime)
 
 object IvSessionDataCore {
 
-  implicit val localDateTimeRead: Reads[LocalDateTime] =
-    ((__ \ "$date") \ "$numberLong").read[String].map {
-      millis =>
-        LocalDateTime.ofInstant(Instant.ofEpochMilli(millis.toLong), ZoneOffset.UTC)
-    }
-
-  implicit val localDateTimeWrite: Writes[LocalDateTime] = (dateTime: LocalDateTime) =>{
-    Json.obj(
-      "$date" -> JsNumber(dateTime.atZone(ZoneOffset.UTC).toInstant.toEpochMilli)
-    )
-  }
+  implicit val dateTimeFormats: Format[DateTime] = MongoJodaFormats.dateTimeFormat
 
   implicit val format: Format[IvSessionDataCore] = Json.format[IvSessionDataCore]
 }
