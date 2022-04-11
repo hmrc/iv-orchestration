@@ -22,8 +22,8 @@ import play.api.Logger
 import pureconfig.ConfigSource
 import pureconfig.generic.auto._
 import uk.gov.hmrc.ivorchestration.config.{MongoConfig, MongoConfiguration}
-import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
+import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
@@ -46,13 +46,13 @@ class IvSessionDataRepository @Inject()(mongoComponent: MongoComponent)
     indexes = Seq(
       IndexModel(
         ascending("createdAt"),
-        indexOptions = IndexOptions().name("createdAt_1").expireAfter(ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig].ttl, SECONDS)
+        indexOptions = IndexOptions().name("expireAfterSeconds").expireAfter(ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig].ttl, SECONDS)
       ),
       IndexModel(
         ascending("journeyId", "ivSessionData.credId"), IndexOptions().name("Primary").unique(true)
       )
     ),
-    replaceIndexes = false // only set to true if changing existing indexes
+    replaceIndexes = ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig].replaceIndexes // only set to true if changing existing indexes
   ) with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
 
   private val playLogger: Logger = Logger(getClass)
