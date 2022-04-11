@@ -45,6 +45,6 @@ trait ApiDocumentationConfiguration {
 
 case class AuthServiceConf(protocol: String, host: String, port: Int)
 
-case class MongoConfig(uri: String, ttl: Int, monitorRefresh: Int, failover: String)
+case class MongoConfig(uri: String, ttl: Int, monitorRefresh: Int, failover: String, replaceIndexes: Boolean)
 
 case class DocumentationConf(access: String, context: String)
