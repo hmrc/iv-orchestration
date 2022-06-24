@@ -6,7 +6,6 @@ import sbt._
 
 val appName = "iv-orchestration"
 
-
 val excludedPackages = Seq(
   "<empty>",
   ".*Reverse.*",
@@ -19,8 +18,6 @@ val excludedPackages = Seq(
   ".*testOnlyDoNotUseInAppConf*.*",
   "testOnly.*")
 
-val silencerVersion="1.7.0"
-
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtAutoBuildPlugin, SbtGitVersioning, SbtDistributablesPlugin)
   .settings(
@@ -28,15 +25,13 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
       evictionWarningOptions           := EvictionWarningOptions.default.withWarnEvictionSummary(false)
   )
-  .settings(SilencerSettings())
   .settings(publishingSettings: _*)
   .configs(IntegrationTest)
-  .settings(scalaVersion := "2.12.12")
+  .settings(scalaVersion := "2.12.15")
   .settings(integrationTestSettings(): _*)
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(playDefaultPort := 9276)
-  .settings(coverageMinimum := 85)
+  .settings(coverageMinimumStmtTotal := 85)
   .settings(coverageFailOnMinimum := true)
   .settings(coverageExcludedPackages := excludedPackages.mkString(";"))
   .settings(unmanagedResourceDirectories in Compile += baseDirectory.value / "resources")
-
