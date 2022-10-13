@@ -4,14 +4,14 @@ import sbt._
 object AppDependencies {
 
   val compile = Seq(
-    "uk.gov.hmrc.mongo"          %% "hmrc-mongo-play-28"         % "0.62.0",
-    "uk.gov.hmrc"                %% "bootstrap-backend-play-28"  % "5.24.0",
+    "uk.gov.hmrc.mongo"          %% "hmrc-mongo-play-28"         % "0.73.0",
+    "uk.gov.hmrc"                %% "bootstrap-backend-play-28"  % "7.8.0-RC1",
     "uk.gov.hmrc"                %% "play-hmrc-api"              % "7.0.0-play-28",
     "com.typesafe.play"          %% "play-json-joda"             % "2.6.7",
-    "com.github.pureconfig"      %% "pureconfig"                 % "0.12.3",
-    "org.typelevel"              %% "cats-core"                  % "2.1.1",
-    "com.softwaremill.quicklens" %% "quicklens"                  % "1.4.12",
-    "com.olegpy"                 %% "meow-mtl-core"              % "0.4.0"
+    "com.github.pureconfig"      %% "pureconfig"                 % "0.17.1",
+    "org.typelevel"              %% "cats-core"                  % "2.8.0",
+    "com.softwaremill.quicklens" %% "quicklens"                  % "1.8.10",
+    "com.olegpy"                 %% "meow-mtl-core"              % "0.5.0"
   )
 
   val test = Seq(
