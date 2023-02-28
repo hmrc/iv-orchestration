@@ -1,0 +1,140 @@
+openapi: 3.0.0
+info:
+  title: Iv Orchestration
+  description: "### What is this API for?\n\nThis service checks if users are authorised and allowed to create and retrieve session data.\nWhen an API changes in a way that is backwards-incompatible, we increase the version number of the API. \nSee our [reference guide](/api-documentation/docs/reference-guide#versioning) for more on\nversioning.\nWe use standard HTTP status codes to show whether an API request succeeded or not. They are usually in the range:\n* 200 to 299 if it succeeded, including code 202 if it was accepted by an API that needs to wait for further action\n* 400 to 499 if it failed because of a client error by your application\n* 500 to 599 if it failed because of an error on our server\n\nErrors specific to each API are shown in the Endpoints section, under Response. \nSee our [reference guide](/api-documentation/docs/reference-guide#errors) for more on errors."
+  contact: {}
+  version: '1.0'
+servers:
+- url: https://api.service.hmrc.gov.uk/
+  variables: {}
+security:
+  - userRestricted:
+      - iv-orchestration
+paths:
+  /individuals/iv-orchestration/iv-sessiondata/search:
+    post:
+      tags:
+      - individuals
+      summary: Search for iv session data
+      description: Given a credId and a journeyId, a search will be performed to retrieve the established iv session data.
+      operationId: Searchforivsessiondata
+      parameters: []
+      requestBody:
+        description: ''
+        content:
+          application/json:
+            schema:
+              allOf:
+              - $ref: '#/components/schemas/IndividualsIvOrchestrationIvSessiondataSearchrequest'
+              - example:
+                  credId: some-cred-id
+                  journeyId: c15abc3f-82fa-41d4-89f0-4edde975da64
+            example:
+              credId: some-cred-id
+              journeyId: c15abc3f-82fa-41d4-89f0-4edde975da64
+        required: true
+      responses:
+        '200':
+          description: Includes an IvSessionData record that was searched for
+          headers: {}
+          content:
+            application/json:
+              schema:
+                allOf:
+                - $ref: '#/components/schemas/IndividualsIvOrchestrationIvSessiondataSearchresponse'
+                - example:
+                    nino: '123455'
+                    confidenceLevel: 200
+                    loginTimes: 2019-08-27
+                    credentialStrength: '123'
+                    postCode: AA12 2BB
+                    firstName: John
+                    lastName: Smith
+                    dateOfbirth: 1990-01-01
+                    evidencesPassedCount: 1
+              example:
+                nino: '123455'
+                confidenceLevel: 200
+                loginTimes: 2019-08-27
+                credentialStrength: '123'
+                postCode: AA12 2BB
+                firstName: John
+                lastName: Smith
+                dateOfbirth: 1990-01-01
+                evidencesPassedCount: 1
+      deprecated: false
+components:
+  securitySchemes:
+    userRestricted:
+      type: oauth2
+      description: |
+        HMRC supports OAuth 2.0 for authenticating user restricted API requests using an OAuth 2.0 Bearer Token in the AUTHORIZATION header.
+        See https://developer.service.hmrc.gov.uk/api-documentation/docs/authorisation/user-restricted-endpoints for details.
+      flows:
+        authorizationCode:
+          authorizationUrl: https://api.service.hmrc.gov.uk/oauth/authorize
+          tokenUrl: https://api.service.hmrc.gov.uk/oauth/token
+          refreshUrl: https://api.service.hmrc.gov.uk/oauth/refresh
+          scopes:
+            iv-orchestration: the iv orchestration user
+  schemas:
+    errorResponse:
+      title: errorResponse
+      required:
+      - code
+      type: object
+      properties:
+        code:
+          type: string
+    IndividualsIvOrchestrationIvSessiondataSearchrequest:
+      title: IndividualsIvOrchestrationIvSessiondataSearchrequest
+      required:
+      - journeyId
+      type: object
+      properties:
+        credId:
+          type: string
+          description: Cred id associated with the stored iv session data
+        journeyId:
+          type: string
+          description: The UUID journey id associated with the iv session data
+      description: Search the iv session data based on cred id and journey id
+    IndividualsIvOrchestrationIvSessiondataSearchresponse:
+      title: IndividualsIvOrchestrationIvSessiondataSearchresponse
+      required:
+      - confidenceLevel
+      type: object
+      properties:
+        nino:
+          type: string
+          description: The NINO associated with the cred id
+        confidenceLevel:
+          type: integer
+          description: The confidence level associated to the cred id
+          format: int32
+        loginTimes:
+          type: string
+          description: The date of the last time the user logged in
+        credentialStrength:
+          type: string
+          description: The credential strength associated to the cred id
+        postCode:
+          type: string
+          description: User's address
+        firstName:
+          type: string
+          description: The firstname of the user
+        lastName:
+          type: string
+          description: The lastname of the user
+        dateOfbirth:
+          type: string
+          description: User's birthday
+        evidencesPassedCount:
+          type: integer
+          description: The number of evidence sources from which questions were answered
+          format: int32
+      description: The iv session data found for the given search
+tags:
+- name: individuals
+  description: ''
