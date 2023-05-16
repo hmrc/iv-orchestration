@@ -16,35 +16,23 @@
 
 package uk.gov.hmrc.ivorchestration.config
 
-import pureconfig.ConfigSource
-import pureconfig.generic.auto._  // Do not remove this
+import play.api.Configuration
+import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
-trait AppConfiguration extends MongoConfiguration with AuthServiceConfiguration with ApiDocumentationConfiguration {
+import javax.inject.{Inject, Singleton}
 
-  lazy val auditingEnabled: Boolean =
-    ConfigSource.default.at("auditing.enabled").loadOrThrow[Boolean]
+@Singleton
+class AppConfig @Inject()(val servicesConfig: ServicesConfig, appConfiguration: Configuration){
 
-  lazy val graphiteHost: String =
-    ConfigSource.default.at("microservice.metrics.graphite.host").loadOrThrow[String]
+  lazy val authConf: String = servicesConfig.baseUrl("auth")
+
+  lazy val access: String = appConfiguration.getOptional[String]("api.access").getOrElse("PRIVATE")
+  lazy val context: String = appConfiguration.getOptional[String]("api.context").getOrElse("individuals/iv-orchestration")
+
+  lazy val mongodbTTL: Int = appConfiguration.getOptional[Int]("mongodb.ttl").getOrElse(60)
+  lazy val mongodbReplaceIndexes: Boolean = appConfiguration.getOptional[Boolean]("mongodb.replace-indexes").getOrElse(false)
+
+  lazy val apiConf: DocumentationConf = DocumentationConf(access, context)
 }
-
-trait MongoConfiguration {
-  lazy val mongoConfig: MongoConfig =
-    ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig]
-}
-
-trait AuthServiceConfiguration {
-  lazy val authConf: AuthServiceConf =
-    ConfigSource.default.at("microservice.services.auth").loadOrThrow[AuthServiceConf]
-}
-
-trait ApiDocumentationConfiguration {
-  lazy val apiConf: DocumentationConf =
-    ConfigSource.default.at("api").loadOrThrow[DocumentationConf]
-}
-
-case class AuthServiceConf(protocol: String, host: String, port: Int)
-
-case class MongoConfig(uri: String, ttl: Int, monitorRefresh: Int, failover: String, replaceIndexes: Boolean)
 
 case class DocumentationConf(access: String, context: String)
