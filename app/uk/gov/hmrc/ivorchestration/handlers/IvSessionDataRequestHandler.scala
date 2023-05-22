@@ -16,43 +16,40 @@
 
 package uk.gov.hmrc.ivorchestration.handlers
 
-import cats.MonadError
-import cats.syntax.flatMap._
-import cats.syntax.functor._
 import org.joda.time.DateTime
 import play.api.Logging
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
-import uk.gov.hmrc.ivorchestration.model.{BusinessError, CredIdForbidden, RecordNotFound}
+import uk.gov.hmrc.ivorchestration.model.{CredIdForbidden, RecordNotFound}
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepositoryAlgebra
 
 import java.util.UUID
-import scala.language.higherKinds
+import javax.inject.Singleton
+import scala.concurrent.{ExecutionContext, Future}
 
-class IvSessionDataRequestHandler[F[_]](
-    ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra[F])(implicit monadError: MonadError[F, BusinessError]
-) extends Logging {
+@Singleton
+class IvSessionDataRequestHandler(ivSessionDataAlgebra: IvSessionDataRepositoryAlgebra)(implicit ec: ExecutionContext) extends Logging {
 
-  def create(ivSessionData: IvSessionData): F[String] =
+  def create(ivSessionData: IvSessionData): Future[String] =
     generateIdAndPersist(ivSessionData).map(core => buildUri(core.journeyId))
 
-  def search(ivSessionDataSearch: IvSessionDataSearchRequest): F[IvSessionDataCore] =
+  def search(ivSessionDataSearch: IvSessionDataSearchRequest): Future[IvSessionDataCore] =
     ivSessionDataAlgebra.findByJourneyId(ivSessionDataSearch.journeyId).flatMap {
       case None =>
         logger.warn(s"No IV session data found for journeyId: ${ivSessionDataSearch.journeyId} and credId: ${ivSessionDataSearch.credId}")
-        monadError.raiseError(RecordNotFound)
+        Future.failed(RecordNotFound)
       case Some(r) if r.ivSessionData.credId == ivSessionDataSearch.credId =>
         logger.info(s"Return session data for journeyId: ${ivSessionDataSearch.journeyId} (${r.ivSessionData.confidenceLevel}, ${r.ivSessionData.ivFailureReason})")
-        monadError.pure(r)
-      case Some(r) =>
+        Future.successful(r)
+      case Some(_) =>
         logger.info(s"Returned session data for journeyId: ${ivSessionDataSearch.journeyId} does not match the requested credId)")
-        monadError.raiseError(CredIdForbidden)
+        Future.failed(CredIdForbidden)
     }
 
-  protected def generateIdAndPersist(ivSessionData: IvSessionData): F[IvSessionDataCore] =
+  protected def generateIdAndPersist(ivSessionData: IvSessionData): Future[IvSessionDataCore] =
     persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), new DateTime))
 
-  protected def persist(ivSessionDataCore: IvSessionDataCore): F[IvSessionDataCore] = {
+  protected def persist(ivSessionDataCore: IvSessionDataCore): Future[IvSessionDataCore] = {
     logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} (${ivSessionDataCore.ivSessionData.confidenceLevel}, ${ivSessionDataCore.ivSessionData.ivFailureReason})")
     ivSessionDataAlgebra.insertIvSessionData(ivSessionDataCore)
   }

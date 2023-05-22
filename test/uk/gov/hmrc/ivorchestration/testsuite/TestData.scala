@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,12 +33,12 @@ trait TestData {
     Some(1), UpliftJourneyType
   )
 
-  val sampleIvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"),DateTime.now(DateTimeZone.UTC))
+  val sampleIvSessionDataCore: IvSessionDataCore = IvSessionDataCore(sampleIvSessionData, JourneyId("123"),DateTime.now(DateTimeZone.UTC))
 
   val buildIvSessionDataCore: IvSessionData => IvSessionDataCore =
     retrieval => IvSessionDataCore(retrieval, JourneyId("123"), new DateTime)
 
-  val sampleSearchSessionDataRequest = IvSessionDataSearchRequest(JourneyId("123"), Some(CredId("456")))
+  val sampleSearchSessionDataRequest: IvSessionDataSearchRequest = IvSessionDataSearchRequest(JourneyId("123"), Some(CredId("456")))
 
-  val sampleSearchSessionDataResponse = IvSessionDataSearchResponse.fromIvSessionDataCore(sampleIvSessionDataCore)
+  val sampleSearchSessionDataResponse: IvSessionDataSearchResponse = IvSessionDataSearchResponse.fromIvSessionDataCore(sampleIvSessionDataCore)
 }

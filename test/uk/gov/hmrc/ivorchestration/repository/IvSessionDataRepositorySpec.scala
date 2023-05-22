@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 HM Revenue & Customs
+ * Copyright 2023 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,11 @@
 
 package uk.gov.hmrc.ivorchestration.repository
 
-import com.softwaremill.quicklens._
 import org.mongodb.scala.MongoCollection
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
+import uk.gov.hmrc.ivorchestration.config.AppConfig
 import uk.gov.hmrc.ivorchestration.model.DuplicatedRecord
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.testsuite._
@@ -32,7 +32,8 @@ import scala.concurrent.Future
 class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with ScalaFutures with TestData with GuiceOneAppPerSuite {
 
   val mongoComponent: MongoComponent = app.injector.instanceOf[MongoComponent]
-  val service = new IvSessionDataRepository(mongoComponent)
+  val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
+  val service = new IvSessionDataRepository(mongoComponent, appConfig)
 
   "can Add and retrieve AuthRetrieval entity" in {
     val eventualData: Future[Seq[IvSessionDataCore]] = for {
@@ -46,7 +47,8 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
   }
 
   "returns a failure with duplicate DB exception when adding with same key" in {
-    val duplicatedEntry = sampleIvSessionDataCore.copy(journeyId = JourneyId("111")).modify(_.ivSessionData.credId).setTo(Some(CredId("123")))
+    val duplicatedEntry: IvSessionDataCore =
+      sampleIvSessionDataCore.copy(ivSessionData = sampleIvSessionData.copy(credId= Some(CredId("123"))), journeyId = JourneyId("111"))
 
     await(service.insertIvSessionData(duplicatedEntry))
 
@@ -56,7 +58,8 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
   }
 
   "returns a failure with duplicate DB exception when adding with same key with no credId" in {
-    val duplicatedEntry = sampleIvSessionDataCore.copy(journeyId = JourneyId("111")).modify(_.ivSessionData.credId).setTo(None)
+    val duplicatedEntry: IvSessionDataCore =
+      sampleIvSessionDataCore.copy(ivSessionData = sampleIvSessionData.copy(credId= None), journeyId = JourneyId("111"))
 
     await(service.insertIvSessionData(duplicatedEntry))
 
@@ -67,26 +70,25 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
 
   "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
     await(service.collection.drop().toFuture())
+    val entry: IvSessionDataCore =
+      sampleIvSessionDataCore.copy(ivSessionData = sampleIvSessionData.copy(credId = Some(CredId("123"))), journeyId = JourneyId("111"))
+    val persistedEntry: IvSessionDataCore = entry.copy(journeyId = JourneyId("333"))
     val eventualData: Future[Option[IvSessionDataCore]] = for {
-      persisted    <- service.insertIvSessionData(sampleIvSessionDataCore.modify(_.ivSessionData.credId).setTo(Some(CredId("123"))).copy(journeyId = JourneyId("111")))
-      _            <- service.insertIvSessionData(persisted.modify(_.journeyId).setTo(JourneyId("333")))
+      persisted    <- service.insertIvSessionData(entry)
+      _            <- service.insertIvSessionData(persistedEntry)
       data         <- service.findByJourneyId(persisted.journeyId)
     } yield data
 
     val actual = await[Option[IvSessionDataCore]](eventualData).get
     import actual.ivSessionData._
 
-    actual mustBe sampleIvSessionDataCore
-      .modify(_.journeyId).setTo(actual.journeyId)
-      .modify(_.ivSessionData.credId).setTo(credId)
-      .modify(_.ivSessionData.loginTimes).setTo(loginTimes)
-      .modify(_.ivSessionData.dateOfBirth).setTo(dateOfBirth)
+    actual mustBe sampleIvSessionDataCore.copy(journeyId = actual.journeyId, ivSessionData = sampleIvSessionData.copy(credId = credId, loginTimes = loginTimes, dateOfBirth = dateOfBirth))
 
     await(service.collection.drop().toFuture())
   }
 
   "Returns a failure with DatabaseError for any DB exception" in {
-    lazy val stubFailingService = new IvSessionDataRepository(mongoComponent) {
+    lazy val stubFailingService = new IvSessionDataRepository(mongoComponent, appConfig) {
       override lazy val collection: MongoCollection[IvSessionDataCore] =
         throw new Exception("BOOM!")
     }
