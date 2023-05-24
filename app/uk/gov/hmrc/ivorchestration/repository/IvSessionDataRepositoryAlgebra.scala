@@ -19,37 +19,41 @@ package uk.gov.hmrc.ivorchestration.repository
 import org.mongodb.scala.model.Indexes.ascending
 import org.mongodb.scala.model.{Filters, IndexModel, IndexOptions}
 import play.api.Logger
-import uk.gov.hmrc.ivorchestration.config.AppConfig
+import pureconfig.ConfigSource
+import pureconfig.generic.auto._
+import uk.gov.hmrc.ivorchestration.config.{MongoConfig, MongoConfiguration}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
 import uk.gov.hmrc.ivorchestration.model.{DatabaseError, DuplicatedRecord}
 import uk.gov.hmrc.mongo.MongoComponent
 import uk.gov.hmrc.mongo.play.json.PlayMongoRepository
 
 import javax.inject.{Inject, Singleton}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.concurrent.duration.SECONDS
-import scala.concurrent.{ExecutionContext, Future}
+import scala.language.higherKinds
 
-trait IvSessionDataRepositoryAlgebra {
-  def insertIvSessionData(authRetrievalCore: IvSessionDataCore): Future[IvSessionDataCore]
-  def retrieveAll(): Future[Seq[IvSessionDataCore]]
-  def findByJourneyId(journeyId: JourneyId): Future[Option[IvSessionDataCore]]
+trait IvSessionDataRepositoryAlgebra[F[_]] {
+  def insertIvSessionData(authRetrievalCore: IvSessionDataCore): F[IvSessionDataCore]
+  def retrieveAll(): F[Seq[IvSessionDataCore]]
+  def findByJourneyId(journeyId: JourneyId): F[Option[IvSessionDataCore]]
 }
 
 @Singleton()
-class IvSessionDataRepository @Inject()(mongoComponent: MongoComponent, app: AppConfig)(implicit val ec: ExecutionContext)
+class IvSessionDataRepository @Inject()(mongoComponent: MongoComponent)
   extends PlayMongoRepository[IvSessionDataCore](
     collectionName = "iv-session-data", mongoComponent = mongoComponent, domainFormat = IvSessionDataCore.format,
     indexes = Seq(
       IndexModel(
         ascending("createdAt"),
-        indexOptions = IndexOptions().name("expireAfterSeconds").expireAfter(app.mongodbTTL, SECONDS)
+        indexOptions = IndexOptions().name("expireAfterSeconds").expireAfter(ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig].ttl, SECONDS)
       ),
       IndexModel(
         ascending("journeyId", "ivSessionData.credId"), IndexOptions().name("Primary").unique(true)
       )
     ),
-    replaceIndexes = app.mongodbReplaceIndexes // only set to true if changing existing indexes
-  ) with IvSessionDataRepositoryAlgebra {
+    replaceIndexes = ConfigSource.default.at("mongodb").loadOrThrow[MongoConfig].replaceIndexes // only set to true if changing existing indexes
+  ) with IvSessionDataRepositoryAlgebra[Future] with MongoConfiguration {
 
   private val playLogger: Logger = Logger(getClass)
 

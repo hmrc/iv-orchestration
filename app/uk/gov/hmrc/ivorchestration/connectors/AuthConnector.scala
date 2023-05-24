@@ -16,13 +16,14 @@
 
 package uk.gov.hmrc.ivorchestration.connectors
 
+import com.google.inject.Inject
 import uk.gov.hmrc.auth.core.PlayAuthConnector
+import uk.gov.hmrc.ivorchestration.config.AuthServiceConfiguration
 import uk.gov.hmrc.http.HttpClient
-import uk.gov.hmrc.ivorchestration.config.AppConfig
 
-import javax.inject.{Inject, Singleton}
 
-@Singleton
-class AuthConnector @Inject()(val http: HttpClient, app: AppConfig) extends PlayAuthConnector {
-  lazy val serviceUrl: String = app.authConf
+class AuthConnector @Inject()(val http: HttpClient) extends PlayAuthConnector with AuthServiceConfiguration {
+  import authConf._
+
+  lazy val serviceUrl: String = s"$protocol://$host:$port"
 }

@@ -16,27 +16,28 @@
 
 package uk.gov.hmrc.ivorchestration.controllers
 
+import javax.inject.{Inject, Singleton}
 import play.api.mvc._
 import uk.gov.hmrc.ivorchestration.handlers.HeadersValidationHandler
 
-import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class HeaderValidator @Inject()(cc: ControllerComponents) extends Results with HeadersValidationHandler {
 
-  def validateAction(): ActionBuilder[Request, AnyContent] with ActionFilter[Request] = {
+  def validateAction(rules: Option[String] => Boolean): ActionBuilder[Request, AnyContent] with ActionFilter[Request] = {
     new ActionBuilder[Request, AnyContent] with ActionFilter[Request] {
 
       override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser
       override protected val executionContext: ExecutionContext = cc.executionContext
 
       def filter[T](input: Request[T]): Future[Option[Result]] = Future.successful {
+
         validateRules(input.headers.toSimpleMap).map(NotAcceptable(_))
       }
 
     }
   }
 
-  val validateAcceptHeader: ActionBuilder[Request, AnyContent] = validateAction()
+  val validateAcceptHeader: ActionBuilder[Request, AnyContent] = validateAction(acceptHeaderValidationRules)
 }

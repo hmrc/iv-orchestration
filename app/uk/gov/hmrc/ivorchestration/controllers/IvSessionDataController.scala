@@ -16,30 +16,33 @@
 
 package uk.gov.hmrc.ivorchestration.controllers
 
-import play.api.Logging
+import cats.instances.future._
+import javax.inject.{Inject, Singleton}
 import play.api.libs.json.{JsValue, Json}
+import play.api.Logging
 import play.api.mvc._
 import uk.gov.hmrc.auth.core.{AuthorisedFunctions, NoActiveSession}
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.IvSessionDataRequestHandler
-import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses._
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
-import uk.gov.hmrc.ivorchestration.model._
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
-import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
+import uk.gov.hmrc.ivorchestration.model.api.ErrorResponses._
 
-import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
+import com.olegpy.meow.hierarchy._
+import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.ivorchestration.model.{CredIdForbidden, DatabaseError, JourneyType, RecordNotFound, StandaloneJourneyType}
+import uk.gov.hmrc.play.bootstrap.backend.controller.BackendController
 
 @Singleton()
 class IvSessionDataController @Inject()(val authConnector: AuthConnector,
                                         headerValidator: HeaderValidator,
                                         ivSessionDataRepository: IvSessionDataRepository,
-                                        cc: ControllerComponents)(implicit val ec: ExecutionContext)
+                                        cc: ControllerComponents)
   extends BackendController(cc) with AuthorisedFunctions with Logging {
 
-  val requestsHandler = new IvSessionDataRequestHandler(ivSessionDataRepository)
+  val requestsHandler = new IvSessionDataRequestHandler[Future](ivSessionDataRepository)
 
   def ivSessionData(): Action[JsValue] =
     controllerAction(parse.json) { implicit request =>
