@@ -24,8 +24,6 @@ import javax.inject.{Inject, Singleton}
 @Singleton
 class AppConfig @Inject()(val servicesConfig: ServicesConfig, appConfiguration: Configuration){
 
-  lazy val authConf: String = servicesConfig.baseUrl("auth")
-
   lazy val access: String = appConfiguration.getOptional[String]("api.access").getOrElse("PRIVATE")
   lazy val context: String = appConfiguration.getOptional[String]("api.context").getOrElse("individuals/iv-orchestration")
 

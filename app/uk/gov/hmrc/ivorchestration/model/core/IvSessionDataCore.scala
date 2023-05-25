@@ -25,8 +25,6 @@ import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
 case class IvSessionDataCore(ivSessionData: IvSessionData, journeyId: JourneyId, createdAt: DateTime)
 
 object IvSessionDataCore {
-
   implicit val dateTimeFormats: Format[DateTime] = MongoJodaFormats.dateTimeFormat
-
   implicit val format: Format[IvSessionDataCore] = Json.format[IvSessionDataCore]
 }
