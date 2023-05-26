@@ -16,8 +16,8 @@
 
 package uk.gov.hmrc.ivorchestration.controllers
 
-import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import akka.stream.Materializer
+import org.joda.time.{DateTime, DateTimeZone, LocalDate}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -26,11 +26,10 @@ import play.api.inject.Injector
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
 import play.api.test.Helpers._
-import uk.gov.hmrc.auth.core.SessionRecordNotFound
 import uk.gov.hmrc.auth.core.authorise.EmptyPredicate
+import uk.gov.hmrc.auth.core.{AuthConnector, SessionRecordNotFound}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.config.AppConfig
-import uk.gov.hmrc.ivorchestration.connectors.AuthConnector
 import uk.gov.hmrc.ivorchestration.handlers.{IvSessionDataRequestHandler, UriPrefix}
 import uk.gov.hmrc.ivorchestration.model.api.{ErrorResponses, IvSessionData, IvSessionDataSearchRequest, IvSessionDataSearchResponse}
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
@@ -184,10 +183,10 @@ class IvSessionDataControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   "returns a 500 for unexpected error" in {
     val controller = new IvSessionDataController(authConnector, headerValidator, service, stubComponent) {
       override val requestsHandler: IvSessionDataRequestHandler = handler
-        override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
-          override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(DatabaseError)
-        }
+      override  def authorised(): AuthorisedFunction = new AuthorisedFunction(EmptyPredicate) {
+        override def apply[A](body: => Future[A])(implicit hc: HeaderCarrier, ec: ExecutionContext): Future[A] = Future.failed(DatabaseError)
       }
+    }
 
     val result = controller.ivSessionData()(FakeRequest("POST", "/iv-sessiondata")
       .withBody(Json.toJson(sampleIvSessionData)))
