@@ -16,14 +16,15 @@
 
 package uk.gov.hmrc.ivorchestration.model.api
 
-import org.joda.time.{DateTime, LocalDate}
+import java.time.{LocalDate, ZonedDateTime}
 import play.api.libs.json._
 import uk.gov.hmrc.auth.core.AffinityGroup
 import uk.gov.hmrc.ivorchestration.model.core.IvSessionDataCore
+import uk.gov.hmrc.ivorchestration.util.{CustomDateTimeReads, CustomDateTimeWrites}
 
 case class IvSessionDataSearchResponse(nino: Option[String],
                                        confidenceLevel: Int,
-                                       loginTimes: Option[DateTime],
+                                       loginTimes: Option[ZonedDateTime],
                                        credentialStrength: Option[String],
                                        postCode: Option[String],
                                        firstName: Option[String],
@@ -34,7 +35,7 @@ case class IvSessionDataSearchResponse(nino: Option[String],
                                        evidencesPassedCount: Option[Int])
 
 
-object IvSessionDataSearchResponse {
+object IvSessionDataSearchResponse extends CustomDateTimeReads with CustomDateTimeWrites {
   def fromIvSessionDataCore(ivSessionDataCore: IvSessionDataCore): IvSessionDataSearchResponse = {
     import ivSessionDataCore.ivSessionData._
     IvSessionDataSearchResponse(
@@ -44,14 +45,9 @@ object IvSessionDataSearchResponse {
     )
   }
 
-  implicit val dateTimeFormat: Format[DateTime] = Format[DateTime](
-    JodaReads.jodaDateReads("yyyy-MM-dd"),
-    JodaWrites.jodaDateWrites("yyyy-MM-dd")
-  )
-
-  implicit val localDateFormat: Format[LocalDate] = Format[LocalDate](
-    JodaReads.jodaLocalDateReads("yyyy-MM-dd"),
-    JodaWrites.jodaLocalDateWrites("yyyy-MM-dd")
+  implicit val customZonedDateTimeFormat: Format[ZonedDateTime] = Format[ZonedDateTime](
+    {json: JsValue => customZonedDateTimeReads.reads(json)},
+    {zdt: ZonedDateTime => customZonedDateTimeWrites.writes(zdt)}
   )
 
   implicit val format = Json.format[IvSessionDataSearchResponse]

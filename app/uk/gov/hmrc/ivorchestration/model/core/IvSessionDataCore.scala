@@ -16,15 +16,20 @@
 
 package uk.gov.hmrc.ivorchestration.model.core
 
-import org.joda.time.DateTime
+import java.time.OffsetDateTime
 import play.api.libs.json._
 import uk.gov.hmrc.ivorchestration.model.api.IvSessionData
-import uk.gov.hmrc.mongo.play.json.formats.MongoJodaFormats
+import uk.gov.hmrc.ivorchestration.util.{CustomDateTimeReads, CustomDateTimeWrites}
+
+case class IvSessionDataCore(ivSessionData: IvSessionData, journeyId: JourneyId, createdAt: OffsetDateTime)
+
+object IvSessionDataCore extends CustomDateTimeReads with CustomDateTimeWrites {
+
+  implicit val customMongoDateTimeFormat: Format[OffsetDateTime] = Format[OffsetDateTime](
+    {json: JsValue => customMongoOffsetDateTimeReads.reads(json)},
+    {offsetDateTime: OffsetDateTime => customMongoZonedDateTimeWrites.writes(offsetDateTime)}
+  )
 
 
-case class IvSessionDataCore(ivSessionData: IvSessionData, journeyId: JourneyId, createdAt: DateTime)
-
-object IvSessionDataCore {
-  implicit val dateTimeFormats: Format[DateTime] = MongoJodaFormats.dateTimeFormat
   implicit val format: Format[IvSessionDataCore] = Json.format[IvSessionDataCore]
 }

@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.handlers
 
-import org.joda.time.DateTime
+import java.time.{OffsetDateTime, ZoneOffset}
 import play.api.Logging
 import uk.gov.hmrc.ivorchestration.model.api.{IvSessionData, IvSessionDataSearchRequest}
 import uk.gov.hmrc.ivorchestration.model.core.{IvSessionDataCore, JourneyId}
@@ -47,7 +47,7 @@ class IvSessionDataRequestHandler(ivSessionDataAlgebra: IvSessionDataRepositoryA
     }
 
   protected def generateIdAndPersist(ivSessionData: IvSessionData): Future[IvSessionDataCore] =
-    persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), new DateTime))
+    persist(IvSessionDataCore(ivSessionData, JourneyId(UUID.randomUUID().toString), OffsetDateTime.now(ZoneOffset.UTC)))
 
   protected def persist(ivSessionDataCore: IvSessionDataCore): Future[IvSessionDataCore] = {
     logger.info(s"Store IV session data for journeyId: ${ivSessionDataCore.journeyId} and credId: ${ivSessionDataCore.ivSessionData.credId} (${ivSessionDataCore.ivSessionData.confidenceLevel}, ${ivSessionDataCore.ivSessionData.ivFailureReason})")

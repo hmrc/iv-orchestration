@@ -82,7 +82,9 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
     val actual = await[Option[IvSessionDataCore]](eventualData).get
     import actual.ivSessionData._
 
-    actual mustBe sampleIvSessionDataCore.copy(journeyId = actual.journeyId, ivSessionData = sampleIvSessionData.copy(credId = credId, loginTimes = loginTimes, dateOfBirth = dateOfBirth))
+    actual mustBe sampleIvSessionDataCore.copy(journeyId = actual.journeyId,
+      ivSessionData = sampleIvSessionData.copy(credId = credId, loginTimes = loginTimes, dateOfBirth = dateOfBirth),
+      createdAt = truncatedCurrentDateTime)
 
     await(service.collection.drop().toFuture())
   }
