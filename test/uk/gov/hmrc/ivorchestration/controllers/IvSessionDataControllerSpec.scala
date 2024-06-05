@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.ivorchestration.controllers
 
-import akka.stream.Materializer
+import org.apache.pekko.stream.Materializer
 import java.time.{LocalDate, OffsetDateTime, ZonedDateTime, ZoneOffset}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach

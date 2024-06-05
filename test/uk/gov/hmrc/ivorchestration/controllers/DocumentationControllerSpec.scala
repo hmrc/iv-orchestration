@@ -25,7 +25,7 @@ import play.api.test.Helpers._
 
 
 class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MockFactory {
-  implicit val hc = HeaderCarrier()
+  implicit val hc: HeaderCarrier = HeaderCarrier()
 
   "provide definition endpoint for each api" in new Setup {
     val result = documentationController.definition()(request)
@@ -42,7 +42,7 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
   }
 
   trait Setup {
-    implicit def materializer: akka.stream.Materializer = app.injector.instanceOf[akka.stream.Materializer]
+    implicit def materializer: org.apache.pekko.stream.Materializer = app.injector.instanceOf[org.apache.pekko.stream.Materializer]
     val documentationController = app.injector.instanceOf[IvOrchestrationDocumentationController]
     val request = FakeRequest()
   }
