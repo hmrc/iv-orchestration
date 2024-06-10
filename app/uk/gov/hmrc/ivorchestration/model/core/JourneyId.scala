@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ case class JourneyId(value: String) extends Product with Serializable
 
 
 object JourneyId {
-  implicit val format = new Format[JourneyId] {
+  implicit val format: Format[JourneyId] = new Format[JourneyId] {
     override def reads(json: JsValue): JsResult[JourneyId] = json.validate[String].map(JourneyId(_))
 
     override def writes(o: JourneyId): JsValue = JsString(o.value)

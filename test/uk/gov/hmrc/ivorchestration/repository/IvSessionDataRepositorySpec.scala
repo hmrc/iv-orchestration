@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -82,7 +82,9 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
     val actual = await[Option[IvSessionDataCore]](eventualData).get
     import actual.ivSessionData._
 
-    actual mustBe sampleIvSessionDataCore.copy(journeyId = actual.journeyId, ivSessionData = sampleIvSessionData.copy(credId = credId, loginTimes = loginTimes, dateOfBirth = dateOfBirth))
+    actual mustBe sampleIvSessionDataCore.copy(journeyId = actual.journeyId,
+      ivSessionData = sampleIvSessionData.copy(credId = credId, loginTimes = loginTimes, dateOfBirth = dateOfBirth),
+      createdAt = truncatedCurrentDateTime)
 
     await(service.collection.drop().toFuture())
   }

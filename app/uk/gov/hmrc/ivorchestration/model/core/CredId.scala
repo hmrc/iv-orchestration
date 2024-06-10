@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import play.api.libs.json.{Format, JsResult, JsString, JsValue}
 case class CredId(value: String)
 
 object CredId {
-  implicit val format = new Format[CredId] {
+  implicit val format: Format[CredId] = new Format[CredId] {
     override def reads(json: JsValue): JsResult[CredId] = json.validate[String].map(CredId(_))
 
     override def writes(o: CredId): JsValue = JsString(o.value)

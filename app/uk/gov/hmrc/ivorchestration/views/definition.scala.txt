@@ -1,5 +1,4 @@
 @import uk.gov.hmrc.ivorchestration.config.DocumentationConf
-@import play.api.libs.json.Json
 
 @(conf: DocumentationConf)
 {
