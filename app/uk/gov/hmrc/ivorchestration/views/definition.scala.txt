@@ -2,13 +2,6 @@
 
 @(conf: DocumentationConf)
 {
-  "scopes": [
-    {
-      "key": "iv-orchestration",
-      "name": "iv-orchestration",
-      "description": "This service checks if users are authorised and allowed to retrieve session data"
-    }
-  ],
   "api": {
     "name": "IV Orchestration",
     "description": "This service checks if users are authorised and allowed to retrieve session data",
