@@ -18,6 +18,7 @@ val excludedPackages = Seq(
 
 lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
+  .disablePlugins(JUnitXmlReportPlugin)
   .settings(
     majorVersion                     := 2,
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
