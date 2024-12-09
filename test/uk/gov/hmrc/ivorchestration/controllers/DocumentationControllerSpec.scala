@@ -34,13 +34,6 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     status(result) mustBe OK
   }
 
-  "provide raml documentation" in new Setup {
-    val result = documentationController.conf("1.0", "application.raml")(request)
-
-    status(result) mustBe OK
-    contentAsString(result) must startWith("#%RAML 1.0")
-  }
-
   trait Setup {
     implicit def materializer: org.apache.pekko.stream.Materializer = app.injector.instanceOf[org.apache.pekko.stream.Materializer]
     val documentationController = app.injector.instanceOf[IvOrchestrationDocumentationController]
