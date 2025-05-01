@@ -24,7 +24,7 @@ lazy val microservice = Project(appName, file("."))
     libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
       evictionWarningOptions           := EvictionWarningOptions.default.withWarnEvictionSummary(false)
   )
-  .settings(scalaVersion := "2.13.12")
+  .settings(scalaVersion := "2.13.16")
   .settings(scalacOptions += "-Wconf:cat=unused-imports&src=routes/.*:s")
   .settings(resolvers += Resolver.jcenterRepo)
   .settings(playDefaultPort := 9276)
