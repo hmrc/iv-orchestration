@@ -1,7 +1,6 @@
 import sbt.Keys.*
 import sbt.*
 import scoverage.ScoverageKeys
-import uk.gov.hmrc.DefaultBuildSettings.scalaSettings
 
 val appName = "iv-orchestration"
 
@@ -29,19 +28,19 @@ lazy val microservice = Project(appName, file("."))
   .settings(
     PlayKeys.playDefaultPort := 9276,
     scoverageSettings,
-    scalaSettings,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions ++= Seq(
-      "-Wconf:cat=unused-imports&src=routes/.*:s",
-    "-Wunused",
-    "-Wdead-code"
+      "-Wconf:cat=unused-imports&src=views/.*:s",
+      "-Wunused",
+      "-Wdead-code",
+      "-Wconf:src=routes/.*:s"
     )
   )
 
 lazy val scoverageSettings =
   Seq(
-    ScoverageKeys.coverageExcludedPackages := "<empty>;Reverse.*;models/.data/..*;view.*;.*(AuthService|BuildInfo|Routes).*",
-    ScoverageKeys.coverageMinimumStmtTotal := 85,
+    ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
+    ScoverageKeys.coverageMinimumStmtTotal := 94,
     ScoverageKeys.coverageFailOnMinimum := true,
     ScoverageKeys.coverageHighlighting := true
   )

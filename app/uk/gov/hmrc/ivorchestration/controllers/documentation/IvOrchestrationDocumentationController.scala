@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.ivorchestration.controllers
+package uk.gov.hmrc.ivorchestration.controllers.documentation
 
 import controllers.Assets
 import play.api.http.HttpErrorHandler

@@ -22,6 +22,7 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.ivorchestration.testsuite.BaseSpec
 import play.api.test.Helpers._
+import uk.gov.hmrc.ivorchestration.controllers.documentation.IvOrchestrationDocumentationController
 
 
 class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with MockFactory {
