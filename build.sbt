@@ -36,6 +36,7 @@ lazy val microservice = Project(appName, file("."))
       "-Wconf:src=routes/.*:s"
     )
   )
+  .settings(Compile / unmanagedResourceDirectories += baseDirectory.value / "resources")
 
 lazy val scoverageSettings =
   Seq(
