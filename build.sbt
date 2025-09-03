@@ -1,8 +1,11 @@
-import play.sbt.PlayImport.PlayKeys.playDefaultPort
-import sbt.Keys._
-import sbt._
+import sbt.Keys.*
+import sbt.*
+import scoverage.ScoverageKeys
 
 val appName = "iv-orchestration"
+
+ThisBuild / majorVersion := 2
+ThisBuild / scalaVersion := "2.13.16"
 
 val excludedPackages = Seq(
   "<empty>",
@@ -20,15 +23,29 @@ lazy val microservice = Project(appName, file("."))
   .enablePlugins(play.sbt.PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin)
   .settings(
-    majorVersion                     := 2,
-    libraryDependencies              ++= AppDependencies.compile ++ AppDependencies.test,
-      evictionWarningOptions           := EvictionWarningOptions.default.withWarnEvictionSummary(false)
+      evictionWarningOptions  := EvictionWarningOptions.default.withWarnEvictionSummary(false)
   )
-  .settings(scalaVersion := "2.13.16")
-  .settings(scalacOptions += "-Wconf:cat=unused-imports&src=routes/.*:s")
-  .settings(resolvers += Resolver.jcenterRepo)
-  .settings(playDefaultPort := 9276)
-  .settings(coverageMinimumStmtTotal := 85)
-  .settings(coverageFailOnMinimum := true)
-  .settings(coverageExcludedPackages := excludedPackages.mkString(";"))
+  .settings(
+    PlayKeys.playDefaultPort := 9276,
+    scoverageSettings,
+    libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
+    scalacOptions ++= Seq(
+      "-Wconf:cat=unused-imports&src=views/.*:s",
+      "-Wunused",
+      "-Wdead-code",
+      "-Wconf:src=routes/.*:s"
+    )
+  )
   .settings(Compile / unmanagedResourceDirectories += baseDirectory.value / "resources")
+
+lazy val scoverageSettings =
+  Seq(
+    ScoverageKeys.coverageExcludedPackages := excludedPackages.mkString(";"),
+    ScoverageKeys.coverageMinimumStmtTotal := 94,
+    ScoverageKeys.coverageFailOnMinimum := true,
+    ScoverageKeys.coverageHighlighting := true
+  )
+
+Test / parallelExecution := true
+Test / Keys.fork := true
+Test / scalacOptions --= Seq("-Wdead-code", "-Wvalue-discard")
