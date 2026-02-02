@@ -35,6 +35,12 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
     status(result) mustBe OK
   }
 
+  "serve api config files via /api/conf/:version/*file" in new Setup {
+    val result = documentationController.conf("1.0", "does-not-exist.yaml")(request)
+
+    status(result) must (be(OK) or be(NOT_FOUND))
+  }
+
   trait Setup {
     implicit def materializer: org.apache.pekko.stream.Materializer = app.injector.instanceOf[org.apache.pekko.stream.Materializer]
     val documentationController = app.injector.instanceOf[IvOrchestrationDocumentationController]
