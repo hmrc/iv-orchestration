@@ -46,8 +46,8 @@ object IvSessionDataSearchResponse extends CustomDateTimeReads with CustomDateTi
   }
 
   implicit val customZonedDateTimeFormat: Format[ZonedDateTime] = Format[ZonedDateTime](
-    {json: JsValue => customZonedDateTimeReads.reads(json)},
-    {zdt: ZonedDateTime => customZonedDateTimeWrites.writes(zdt)}
+    {(json: JsValue) => customZonedDateTimeReads.reads(json)},
+    {(zdt: ZonedDateTime) => customZonedDateTimeWrites.writes(zdt)}
   )
 
   implicit val format: OFormat[IvSessionDataSearchResponse] = Json.format[IvSessionDataSearchResponse]

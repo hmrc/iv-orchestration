@@ -43,7 +43,7 @@ class IvSessionDataRequestHandlerSpec extends BaseSpec with TestData {
 
   "Given AuthRetrieval" should {
     "JourneyId is generated for iv-session-data" in new IvSessionDataRequestHandler(algebra) {
-      create(sampleIvSessionData).map( prefix => prefix mustBe include(UriPrefix.uriPrefix))
+      create(sampleIvSessionData).map( prefix => prefix must include(UriPrefix.uriPrefix))
     }
 
     "JourneyId is generated and appended to the returned uri" in new IvSessionDataRequestHandler(algebra) {

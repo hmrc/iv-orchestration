@@ -41,8 +41,8 @@ case class IvSessionData(credId: Option[CredId],
 object IvSessionData extends CustomDateTimeReads with CustomDateTimeWrites {
 
   implicit val customZonedDateTimeFormat: Format[ZonedDateTime] = Format[ZonedDateTime](
-    {json: JsValue => customZonedDateTimeReads.reads(json)},
-    {zdt: ZonedDateTime => customZonedDateTimeWrites.writes(zdt)}
+    {(json: JsValue) => customZonedDateTimeReads.reads(json)},
+    {(zdt: ZonedDateTime) => customZonedDateTimeWrites.writes(zdt)}
   )
 
   implicit val format: OFormat[IvSessionData] = Json.format[IvSessionData]

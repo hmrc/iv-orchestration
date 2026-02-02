@@ -26,8 +26,8 @@ case class IvSessionDataCore(ivSessionData: IvSessionData, journeyId: JourneyId,
 object IvSessionDataCore extends CustomDateTimeReads with CustomDateTimeWrites {
 
   implicit val customMongoDateTimeFormat: Format[OffsetDateTime] = Format[OffsetDateTime](
-    {json: JsValue => customMongoOffsetDateTimeReads.reads(json)},
-    {offsetDateTime: OffsetDateTime => customMongoZonedDateTimeWrites.writes(offsetDateTime)}
+    {(json: JsValue) => customMongoOffsetDateTimeReads.reads(json)},
+    {(offsetDateTime: OffsetDateTime) => customMongoZonedDateTimeWrites.writes(offsetDateTime)}
   )
 
 
