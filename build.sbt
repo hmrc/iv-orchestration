@@ -5,7 +5,7 @@ import scoverage.ScoverageKeys
 val appName = "iv-orchestration"
 
 ThisBuild / majorVersion := 2
-ThisBuild / scalaVersion := "2.13.16"
+ThisBuild / scalaVersion := "3.7.4"
 
 val excludedPackages = Seq(
   "<empty>",
@@ -30,9 +30,8 @@ lazy val microservice = Project(appName, file("."))
     scoverageSettings,
     libraryDependencies ++= AppDependencies.compile ++ AppDependencies.test,
     scalacOptions ++= Seq(
-      "-Wconf:cat=unused-imports&src=views/.*:s",
-      "-Wunused",
-      "-Wdead-code",
+      "-Wconf:msg=unused import&src=html/.*:s",
+      "-Wconf:msg=Flag.*repeatedly:s",
       "-Wconf:src=routes/.*:s"
     )
   )

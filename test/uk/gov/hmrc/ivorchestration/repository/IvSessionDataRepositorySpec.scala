@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,8 +23,9 @@ import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import uk.gov.hmrc.ivorchestration.config.AppConfig
 import uk.gov.hmrc.ivorchestration.model.DuplicatedRecord
 import uk.gov.hmrc.ivorchestration.model.core.{CredId, IvSessionDataCore, JourneyId}
-import uk.gov.hmrc.ivorchestration.testsuite._
+import uk.gov.hmrc.ivorchestration.testsuite.*
 import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.logging.ObservableFutureImplicits.SingleObservableFuture
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
@@ -80,7 +81,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
     } yield data
 
     val actual = await[Option[IvSessionDataCore]](eventualData).get
-    import actual.ivSessionData._
+    import actual.ivSessionData.*
 
     actual mustBe sampleIvSessionDataCore.copy(journeyId = actual.journeyId,
       ivSessionData = sampleIvSessionData.copy(credId = credId, loginTimes = loginTimes, dateOfBirth = dateOfBirth),

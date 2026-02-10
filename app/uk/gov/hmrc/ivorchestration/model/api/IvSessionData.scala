@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,8 @@ case class IvSessionData(credId: Option[CredId],
 object IvSessionData extends CustomDateTimeReads with CustomDateTimeWrites {
 
   implicit val customZonedDateTimeFormat: Format[ZonedDateTime] = Format[ZonedDateTime](
-    {json: JsValue => customZonedDateTimeReads.reads(json)},
-    {zdt: ZonedDateTime => customZonedDateTimeWrites.writes(zdt)}
+    {(json: JsValue) => customZonedDateTimeReads.reads(json)},
+    {(zdt: ZonedDateTime) => customZonedDateTimeWrites.writes(zdt)}
   )
 
   implicit val format: OFormat[IvSessionData] = Json.format[IvSessionData]

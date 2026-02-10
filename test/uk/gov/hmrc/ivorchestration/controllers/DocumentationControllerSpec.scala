@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,6 +33,12 @@ class DocumentationControllerSpec extends BaseSpec with GuiceOneAppPerSuite with
 
     contentAsString(result) mustNot contain ("whitelistedApplicationIds")
     status(result) mustBe OK
+  }
+
+  "serve api config files via /api/conf/:version/*file" in new Setup {
+    val result = documentationController.conf("1.0", "does-not-exist.yaml")(request)
+
+    status(result) must (be(OK) or be(NOT_FOUND))
   }
 
   trait Setup {

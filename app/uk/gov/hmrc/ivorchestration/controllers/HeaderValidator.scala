@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class HeaderValidator @Inject()(cc: ControllerComponents) extends Results with HeadersValidationHandler {
 
-  def validateAction(): ActionBuilder[Request, AnyContent] with ActionFilter[Request] = {
+  def validateAction(): ActionBuilder[Request, AnyContent] & ActionFilter[Request] = {
     new ActionBuilder[Request, AnyContent] with ActionFilter[Request] {
 
       override val parser: BodyParser[AnyContent] = cc.parsers.defaultBodyParser

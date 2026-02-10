@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package uk.gov.hmrc.ivorchestration.controllers
 
 import org.apache.pekko.stream.Materializer
-import java.time.{LocalDate, OffsetDateTime, ZonedDateTime, ZoneOffset}
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.BeforeAndAfterEach
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -25,7 +24,7 @@ import play.api.i18n.MessagesApi
 import play.api.inject.Injector
 import play.api.libs.json.Json
 import play.api.test.FakeRequest
-import play.api.test.Helpers._
+import play.api.test.Helpers.*
 import uk.gov.hmrc.auth.core.authorise.EmptyPredicate
 import uk.gov.hmrc.auth.core.{AuthConnector, SessionRecordNotFound}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -37,7 +36,9 @@ import uk.gov.hmrc.ivorchestration.model.{DatabaseError, StandaloneJourneyType, 
 import uk.gov.hmrc.ivorchestration.repository.IvSessionDataRepository
 import uk.gov.hmrc.ivorchestration.testsuite.{BaseSpec, TestData}
 import uk.gov.hmrc.mongo.MongoComponent
+import uk.gov.hmrc.mongo.logging.ObservableFutureImplicits.SingleObservableFuture
 
+import java.time.{LocalDate, OffsetDateTime, ZoneOffset, ZonedDateTime}
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.{ExecutionContext, Future}
 
