@@ -17,6 +17,7 @@
 package uk.gov.hmrc.ivorchestration.repository
 
 import org.mongodb.scala.MongoCollection
+import org.mongodb.scala.model.Filters
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.concurrent.ScalaFutures
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
@@ -35,8 +36,16 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
   val mongoComponent: MongoComponent = app.injector.instanceOf[MongoComponent]
   val appConfig: AppConfig = app.injector.instanceOf[AppConfig]
   val service = new IvSessionDataRepository(mongoComponent, appConfig)
+  
+  override def beforeEach(): Unit = {
+    // Dropping the collection before each test caused the first duplicate test to fail.
+    // Just deleting the documents in the collection seems more consistent probably
+    // because the indexes are not dropped and recreated.
+    await(service.collection.deleteMany(Filters.exists("journeyId")).toFuture())
+  }
 
   "can Add and retrieve AuthRetrieval entity" in {
+    
     val eventualData: Future[Seq[IvSessionDataCore]] = for {
       _    <- service.insertIvSessionData(buildIvSessionDataCore(sampleIvSessionData))
       data <- service.retrieveAll()
@@ -48,6 +57,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
   }
 
   "returns a failure with duplicate DB exception when adding with same key" in {
+    
     val duplicatedEntry: IvSessionDataCore =
       sampleIvSessionDataCore.copy(ivSessionData = sampleIvSessionData.copy(credId= Some(CredId("123"))), journeyId = JourneyId("111"))
 
@@ -70,7 +80,6 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
   }
 
   "can Add and retrieve AuthRetrieval entity by journeyId & credId" in {
-    await(service.collection.drop().toFuture())
     val entry: IvSessionDataCore =
       sampleIvSessionDataCore.copy(ivSessionData = sampleIvSessionData.copy(credId = Some(CredId("123"))), journeyId = JourneyId("111"))
     val persistedEntry: IvSessionDataCore = entry.copy(journeyId = JourneyId("333"))
@@ -86,8 +95,7 @@ class IvSessionDataRepositorySpec extends BaseSpec with BeforeAndAfterEach with 
     actual mustBe sampleIvSessionDataCore.copy(journeyId = actual.journeyId,
       ivSessionData = sampleIvSessionData.copy(credId = credId, loginTimes = loginTimes, dateOfBirth = dateOfBirth),
       createdAt = truncatedCurrentDateTime)
-
-    await(service.collection.drop().toFuture())
+    
   }
 
   "Returns a failure with DatabaseError for any DB exception" in {
